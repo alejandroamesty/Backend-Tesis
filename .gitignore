@@ -1,0 +1,21 @@
+# Ignore .env file with sensitive information
+.env
+
+# Ignore Deno dependencies
+deno.lock
+
+# Ignore cache and other temporary files
+.cache/
+*.log
+
+# Ignore specific OS files
+.DS_Store
+Thumbs.db
+
+# Ignore editor/IDE files
+.vscode/
+.idea/
+
+node_modules
+
+package-lock.json
