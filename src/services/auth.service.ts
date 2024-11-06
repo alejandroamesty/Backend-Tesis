@@ -11,10 +11,19 @@ class AuthService {
 		email: string;
 		password: string;
 		address: string | null;
-		birth_date: Date | null;
+		birth_date: string | null;
 	}) {
-		const { username, image, fname, lname, biography, email, password, address, birth_date } =
-			data;
+		const {
+			username,
+			image,
+			fname,
+			lname,
+			biography,
+			email,
+			password,
+			address,
+			birth_date,
+		} = data;
 
 		const hashedPassword = await hasher.hash(password, 4);
 
@@ -29,7 +38,7 @@ class AuthService {
 				email,
 				password: hashedPassword,
 				address,
-				birth_date,
+				birth_date: birth_date ? new Date(birth_date) : null,
 			})
 			.returning([
 				'id',

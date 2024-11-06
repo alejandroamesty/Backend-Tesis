@@ -2,8 +2,21 @@
 import { Request, Response } from 'express';
 import authService from '../services/auth.service.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
+import { ForbiddenError } from '../utils/errors/httpErrors.ts';
 import { handleError } from '../utils/errorHandler.ts';
 import { generateToken } from '../utils/JWTComponent.ts';
+
+interface UserRequestBody {
+	username: string;
+	image: string;
+	fname: string;
+	lname: string;
+	biography: string;
+	email: string;
+	password: string;
+	address: string;
+	birth_date: string;
+}
 
 class AuthController {
 	async register(req: Request, res: Response) {
@@ -18,7 +31,7 @@ class AuthController {
 				password,
 				address,
 				birth_date,
-			} = req.body;
+			} = req.body as UserRequestBody;
 
 			verifyTypes([
 				{
@@ -40,7 +53,6 @@ class AuthController {
 				},
 			]);
 
-			// test
 			const userData = {
 				username: username,
 				image: image || null,
@@ -82,7 +94,7 @@ class AuthController {
 
 			const user = await authService.login({ username, password });
 			if (user === null) {
-				return res.status(401).json({ error: true, message: 'Acceso no autorizado' });
+				throw new ForbiddenError('Invalid username or password');
 			}
 
 			const token = generateToken({ id: user.id });

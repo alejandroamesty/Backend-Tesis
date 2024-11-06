@@ -1,26 +1,31 @@
 import { MismatchTypeError } from './errors/TypeError.ts';
+import { ForbiddenError, UnauthorizedError } from './errors/httpErrors.ts';
 
 export function handleError(error: unknown) {
-	if (error instanceof Error && typeof error === 'object' && error !== null && 'code' in error) {
-		switch (Number(error.code)) {
-			case 23505:
-				return { code: 409, message: 'Conflict' };
-			case 23502:
-				return { code: 400, message: 'Bad request' };
-			default:
-				console.error(error);
-				return { code: 500, message: 'Internal database error' };
-		}
+	switch (true) {
+		case error instanceof Error &&
+			typeof error === 'object' &&
+			error !== null &&
+			'code' in error:
+			switch (Number(error.code)) {
+				case 23505:
+					return { code: 409, message: 'Conflicto de datos' };
+				case 23502:
+					return { code: 400, message: 'Solitud incorrecta' };
+				default:
+					console.error(error);
+					return { code: 500, message: 'Error interno en base de datos' };
+			}
+		case error instanceof TypeError:
+			console.error(error);
+			return { code: 500, message: 'Internal server error' };
+		case error instanceof UnauthorizedError:
+			return { code: 401, message: 'Acceso no autorizado' };
+		case error instanceof ForbiddenError:
+			return { code: 403, message: 'Acceso denegado' };
+		case error instanceof MismatchTypeError:
+			return { code: 400, message: 'Solicitud incorrecta' };
+		default:
+			return { code: 500, message: 'Error interno del servidor' };
 	}
-
-	if (error instanceof TypeError) {
-		console.error(error);
-		return { code: 500, message: 'Internal server error' };
-	}
-
-	if (error instanceof MismatchTypeError) {
-		return { code: 400, message: 'Bad request' };
-	}
-
-	return { code: 500, message: 'Internal server error' };
 }
