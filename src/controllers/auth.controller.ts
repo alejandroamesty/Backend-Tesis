@@ -68,7 +68,7 @@ class AuthController {
 			const user = await authService.register(userData);
 
 			return res.json({
-				message: 'Registro exitoso',
+				msg: 'Registro exitoso',
 				data: { user },
 			});
 		} catch (error: unknown) {
@@ -101,7 +101,7 @@ class AuthController {
 			res.setHeader('Authorization', `Bearer ${token}`);
 
 			return res.json({
-				message: 'User logged in successfully',
+				msg: 'User logged in successfully',
 				data: {
 					token,
 					user: {
