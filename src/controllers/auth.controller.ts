@@ -33,6 +33,7 @@ class AuthController {
 				birth_date,
 			} = req.body as UserRequestBody;
 
+			console.log('verifying types');
 			verifyTypes([
 				{
 					value: [username, fname, lname],
@@ -52,6 +53,7 @@ class AuthController {
 					optional: true,
 				},
 			]);
+			console.log('types verified');
 
 			const userData = {
 				username: username,
@@ -65,13 +67,15 @@ class AuthController {
 				birth_date: birth_date || null,
 			};
 
+			console.log('registering user');
 			const user = await authService.register(userData);
 
 			return res.json({
 				msg: 'Registro exitoso',
-				data: { user },
+				data: { user_id: user.id },
 			});
 		} catch (error: unknown) {
+			console.log(error);
 			const err = handleError(error);
 			return res.status(err.code).json(err.message);
 		}
@@ -97,11 +101,11 @@ class AuthController {
 				throw new ForbiddenError('Invalid username or password');
 			}
 
-			const token = generateToken({ id: user.id });
+			const token = await generateToken({ id: user.id });
 			res.setHeader('Authorization', `Bearer ${token}`);
 
 			return res.json({
-				msg: 'User logged in successfully',
+				msg: 'Usuario logueado con exito',
 				data: {
 					token,
 					user: {
