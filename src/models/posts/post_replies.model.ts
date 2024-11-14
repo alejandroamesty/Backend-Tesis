@@ -1,4 +1,4 @@
-import { Insertable, Selectable, Updateable, Generated } from 'kysely';
+import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostRepliesTable {
 	id: Generated<number>;

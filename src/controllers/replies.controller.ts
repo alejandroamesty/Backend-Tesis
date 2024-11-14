@@ -29,7 +29,7 @@ class RepliesController {
 				postId as number,
 				userId as number,
 				content as string,
-				parentReplyId
+				parentReplyId,
 			);
 			res.json({ msg: 'Comentario agregado con exito', reply });
 		} catch (error) {

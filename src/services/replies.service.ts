@@ -6,7 +6,7 @@ class RepliesService {
 		postId: number,
 		userId: number,
 		content: string,
-		parentReplyId?: number
+		parentReplyId?: number,
 	) {
 		// If parentReplyId is provided, check if it belongs to the same post
 		if (parentReplyId) {
