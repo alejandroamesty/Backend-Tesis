@@ -100,8 +100,6 @@ class PostService {
 			categoryName,
 		} = rows[0];
 
-		console.log(rows);
-
 		// Aggregate images and videos
 		const images = rows
 			.map((row) => row.image)

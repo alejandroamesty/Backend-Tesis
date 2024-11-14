@@ -1,7 +1,8 @@
 import { MismatchTypeError } from './errors/TypeError.ts';
-import { ForbiddenError, UnauthorizedError } from './errors/httpErrors.ts';
+import { ForbiddenError, NotFoundError, UnauthorizedError } from './errors/httpErrors.ts';
+import { Response } from 'express';
 
-export function handleError(error: unknown) {
+export function handleError(error: unknown, res: Response) {
 	switch (true) {
 		case error instanceof Error &&
 			typeof error === 'object' &&
@@ -9,23 +10,28 @@ export function handleError(error: unknown) {
 			'code' in error:
 			switch (Number(error.code)) {
 				case 23505:
-					return { code: 409, message: 'Conflicto de datos' };
+					return res.status(409).json({ msg: 'Conflicto de datos' });
 				case 23502:
-					return { code: 400, message: 'Solitud incorrecta' };
+					return res.status(400).json({ msg: 'Solitud incorrecta' });
+				case 23503:
+					return res.status(404).json({ msg: 'Recurso no encontrado' });
 				default:
 					console.error(error);
-					return { code: 500, message: 'Error interno en base de datos' };
+					return res.status(500).json({ msg: 'Error interno en base de datos' });
 			}
 		case error instanceof TypeError:
 			console.error(error);
-			return { code: 500, message: 'Internal server error' };
+			return res.status(500).json({ msg: 'Error interno del servidor' });
 		case error instanceof UnauthorizedError:
-			return { code: 401, message: 'Acceso no autorizado' };
+			return res.status(401).json({ msg: 'Acceso no autorizado' });
 		case error instanceof ForbiddenError:
-			return { code: 403, message: 'Acceso denegado' };
+			return res.status(403).json({ msg: 'Acceso denegado' });
 		case error instanceof MismatchTypeError:
-			return { code: 400, message: 'Solicitud incorrecta' };
+			return res.status(400).json({ msg: 'Solicitud incorrecta' });
+		case error instanceof NotFoundError:
+			return res.status(404).json({ msg: 'Recurso no encontrado' });
 		default:
-			return { code: 500, message: 'Error interno del servidor' };
+			console.error(error);
+			return res.status(500).json({ msg: 'Error interno del servidor' });
 	}
 }

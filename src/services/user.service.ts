@@ -4,7 +4,16 @@ class UserService {
 	async getAllUsers() {
 		return await db
 			.selectFrom('users')
-			.select(['id', 'fname', 'lname', 'username', 'biography', 'image', 'birth_date'])
+			.select([
+				'id',
+				'fname',
+				'lname',
+				'username',
+				'biography',
+				'address',
+				'image',
+				'birth_date',
+			])
 			.execute();
 	}
 
@@ -12,7 +21,16 @@ class UserService {
 		return await db
 			.selectFrom('users')
 			.where('id', '=', id)
-			.select(['id', 'fname', 'lname', 'username', 'biography', 'image', 'birth_date'])
+			.select([
+				'id',
+				'fname',
+				'lname',
+				'username',
+				'biography',
+				'address',
+				'image',
+				'birth_date',
+			])
 			.executeTakeFirst();
 	}
 
@@ -20,7 +38,16 @@ class UserService {
 		return await db
 			.selectFrom('users')
 			.where('username', '=', username)
-			.select(['id', 'fname', 'lname', 'username', 'biography', 'image', 'birth_date'])
+			.select([
+				'id',
+				'fname',
+				'lname',
+				'username',
+				'biography',
+				'address',
+				'image',
+				'birth_date',
+			])
 			.executeTakeFirst();
 	}
 
@@ -28,7 +55,16 @@ class UserService {
 		return await db
 			.selectFrom('users')
 			.where('email', '=', email)
-			.select(['id', 'fname', 'lname', 'username', 'biography', 'image', 'birth_date'])
+			.select([
+				'id',
+				'fname',
+				'lname',
+				'username',
+				'biography',
+				'address',
+				'image',
+				'birth_date',
+			])
 			.executeTakeFirst();
 	}
 
@@ -44,7 +80,7 @@ class UserService {
 			password: string;
 			address?: string;
 			birth_date?: Date;
-		}>,
+		}>
 	) {
 		return await db.updateTable('users').set(data).where('id', '=', id).execute();
 	}

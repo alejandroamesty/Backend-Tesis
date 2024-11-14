@@ -75,9 +75,7 @@ class AuthController {
 				data: { user_id: user.id },
 			});
 		} catch (error: unknown) {
-			console.log(error);
-			const err = handleError(error);
-			return res.status(err.code).json(err.message);
+			handleError(error, res);
 		}
 	}
 
@@ -122,8 +120,7 @@ class AuthController {
 				},
 			});
 		} catch (error: unknown) {
-			const err = handleError(error);
-			return res.status(err.code).json(err.message);
+			handleError(error, res);
 		}
 	}
 }

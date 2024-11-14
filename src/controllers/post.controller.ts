@@ -1,5 +1,6 @@
-import postService from '../services/post.service.ts';
+// @deno-types="@types/express"
 import { Request, Response } from 'express';
+import postService from '../services/post.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
 import { NotFoundError } from '../utils/errors/httpErrors.ts';
@@ -19,8 +20,7 @@ class PostController {
 
 			res.json(response);
 		} catch (error) {
-			const err = handleError(error);
-			res.status(err.code).json(err.message);
+			handleError(error, res);
 		}
 	}
 }

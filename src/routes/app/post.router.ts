@@ -1,4 +1,4 @@
-import postController from '../controllers/post.controller.ts';
+import postController from '../../controllers/post.controller.ts';
 import Router from 'express';
 
 const postRouter = Router();
