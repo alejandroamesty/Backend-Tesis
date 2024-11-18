@@ -1,4 +1,4 @@
-import { crypto } from 'jsr:@std/crypto';
+import { crypto } from 'https://deno.land/std/crypto/mod.ts';
 
 const baseSaltLength = 16;
 
@@ -24,7 +24,7 @@ class Hasher {
 			new TextEncoder().encode(data),
 			{ name: 'PBKDF2' },
 			false,
-			['deriveBits', 'deriveKey'],
+			['deriveBits', 'deriveKey']
 		);
 
 		const derivedKey = await crypto.subtle.deriveKey(
@@ -37,7 +37,7 @@ class Hasher {
 			passwordKey,
 			{ name: 'AES-GCM', length: 256 },
 			true,
-			['encrypt', 'decrypt'],
+			['encrypt', 'decrypt']
 		);
 
 		const hashedData = new Uint8Array(await crypto.subtle.exportKey('raw', derivedKey));
@@ -59,7 +59,7 @@ class Hasher {
 			new TextEncoder().encode(data),
 			{ name: 'PBKDF2' },
 			false,
-			['deriveBits', 'deriveKey'],
+			['deriveBits', 'deriveKey']
 		);
 
 		const derivedKey = await crypto.subtle.deriveKey(
@@ -72,10 +72,12 @@ class Hasher {
 			passwordKey,
 			{ name: 'AES-GCM', length: 256 },
 			true,
-			['encrypt', 'decrypt'],
+			['encrypt', 'decrypt']
 		);
 
-		const newHashedData = new Uint8Array(await crypto.subtle.exportKey('raw', derivedKey));
+		const newHashedData = new Uint8Array(
+			await crypto.subtle.exportKey('raw', derivedKey)
+		);
 		return this.encodeHex(newHashedData) === hashHex;
 	}
 
