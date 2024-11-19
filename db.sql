@@ -28,6 +28,10 @@ CREATE SEQUENCE "public".private_chat_chat_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".private_chat_id_seq START WITH 1 INCREMENT BY 1;
 
+CREATE SEQUENCE "public".saved_posts_post_id_seq START WITH 1 INCREMENT BY 1;
+
+CREATE SEQUENCE "public".saved_posts_user_id_seq START WITH 1 INCREMENT BY 1;
+
 CREATE SEQUENCE "public".users_id_seq AS integer START WITH 1 INCREMENT BY 1;
 
 CREATE  TABLE "public".chat ( 
@@ -114,7 +118,7 @@ CREATE  TABLE "public".saved_posts (
 	CONSTRAINT pk_saved_posts PRIMARY KEY ( user_id, post_id )
  );
 
-CREATE  TABLE "public".user_follower ( 
+CREATE  TABLE "public".user_followers ( 
 	user_id              bigint  NOT NULL  ,
 	user_follower        bigint  NOT NULL  ,
 	CONSTRAINT pk_user_follower PRIMARY KEY ( user_id, user_follower )
@@ -160,7 +164,7 @@ ALTER TABLE "public".chat_message ADD CONSTRAINT fk_chat_message_users FOREIGN K
 
 ALTER TABLE "public".chat_message ADD CONSTRAINT fk_chat_message FOREIGN KEY ( message_content_id ) REFERENCES "public".message_content( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".post_images ADD CONSTRAINT fk_post_images_posts FOREIGN KEY ( post_id ) REFERENCES "public".posts( id );
+ALTER TABLE "public".post_images ADD CONSTRAINT fk_post_images_posts FOREIGN KEY ( post_id ) REFERENCES "public".posts( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "public".post_likes ADD CONSTRAINT fk_post_likes_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -172,7 +176,7 @@ ALTER TABLE "public".post_replies ADD CONSTRAINT fk_post_replies_posts FOREIGN K
 
 ALTER TABLE "public".post_replies ADD CONSTRAINT fk_post_replies_post_replies FOREIGN KEY ( parent_reply_id ) REFERENCES "public".post_replies( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".post_videos ADD CONSTRAINT fk_post_videos_post_likes FOREIGN KEY ( post_id ) REFERENCES "public".posts( id );
+ALTER TABLE "public".post_videos ADD CONSTRAINT fk_post_videos_post_likes FOREIGN KEY ( post_id ) REFERENCES "public".posts( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "public".posts ADD CONSTRAINT fk_post_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -186,9 +190,9 @@ ALTER TABLE "public".saved_posts ADD CONSTRAINT fk_saved_posts_posts FOREIGN KEY
 
 ALTER TABLE "public".saved_posts ADD CONSTRAINT fk_saved_posts_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".user_follower ADD CONSTRAINT fk_user_follower_users_muser FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".user_followers ADD CONSTRAINT fk_user_follower_users_muser FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".user_follower ADD CONSTRAINT fk_user_follower_users_fuser FOREIGN KEY ( user_follower ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".user_followers ADD CONSTRAINT fk_user_follower_users_fuser FOREIGN KEY ( user_follower ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 CREATE TRIGGER adjust_likes_count AFTER INSERT OR DELETE ON public.post_likes FOR EACH ROW EXECUTE FUNCTION update_likes_count();
 

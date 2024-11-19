@@ -1,24 +1,13 @@
-const STATIC_DIR = './public';
+import MIME_TYPES from '../types/types.ts';
 
-const MIME_TYPES: Record<string, string> = {
-	'.html': 'text/html',
-	'.css': 'text/css',
-	'.js': 'application/javascript',
-	'.json': 'application/json',
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.jpeg': 'image/jpeg',
-	'.gif': 'image/gif',
-	'.svg': 'image/svg+xml',
-	'.txt': 'text/plain',
-};
+const STATIC_DIR = './public';
 
 const ensureDirectoryExists = async (dir: string) => {
 	try {
 		await Deno.mkdir(dir, { recursive: true });
 	} catch (error) {
 		if (error instanceof Deno.errors.AlreadyExists) {
-			throw error; // Re-throw unexpected errors
+			throw error;
 		}
 	}
 };

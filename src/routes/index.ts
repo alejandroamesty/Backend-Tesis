@@ -5,6 +5,7 @@ import authRouter from './auth.router.ts';
 import postRouter from './app/post.router.ts';
 import likesRouter from './app/likes.router.ts';
 import repliesRouter from './app/replies.router.ts';
+import followerRouter from './app/followers.router.ts';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router
 	.use('/users', userRouter)
 	.use('/posts', postRouter)
 	.use('/likes', likesRouter)
-	.use('/replies', repliesRouter);
+	.use('/replies', repliesRouter)
+	.use('/followers', followerRouter);
 
 export default router;

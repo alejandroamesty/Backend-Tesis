@@ -4,67 +4,81 @@ class UserService {
 	async getAllUsers() {
 		return await db
 			.selectFrom('users')
+			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.leftJoin('posts', 'users.id', 'posts.user_id')
 			.select([
-				'id',
-				'fname',
-				'lname',
-				'username',
-				'biography',
-				'address',
-				'image',
-				'birth_date',
+				'users.id',
+				'users.fname',
+				'users.lname',
+				'users.username',
+				'users.biography',
+				'users.address',
+				'users.image',
+				'users.birth_date',
+				db.fn.count('posts.id').as('posts_nu'),
+				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
+			.groupBy('users.id') // Ensure grouping by user id to count followers
 			.execute();
 	}
 
 	async getUserById(id: number) {
 		return await db
 			.selectFrom('users')
-			.where('id', '=', id)
+			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.where('users.id', '=', id)
 			.select([
-				'id',
-				'fname',
-				'lname',
-				'username',
-				'biography',
-				'address',
-				'image',
-				'birth_date',
+				'users.id',
+				'users.fname',
+				'users.lname',
+				'users.username',
+				'users.biography',
+				'users.address',
+				'users.image',
+				'users.birth_date',
+				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
+			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 	}
 
 	async getUserByUsername(username: string) {
 		return await db
 			.selectFrom('users')
-			.where('username', '=', username)
+			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.where('users.username', '=', username)
 			.select([
-				'id',
-				'fname',
-				'lname',
-				'username',
-				'biography',
-				'address',
-				'image',
-				'birth_date',
+				'users.id',
+				'users.fname',
+				'users.lname',
+				'users.username',
+				'users.biography',
+				'users.address',
+				'users.image',
+				'users.birth_date',
+				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
+			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 	}
 
 	async getUserByEmail(email: string) {
 		return await db
 			.selectFrom('users')
-			.where('email', '=', email)
+			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.where('users.email', '=', email)
 			.select([
-				'id',
-				'fname',
-				'lname',
-				'username',
-				'biography',
-				'address',
-				'image',
-				'birth_date',
+				'users.id',
+				'users.fname',
+				'users.lname',
+				'users.username',
+				'users.biography',
+				'users.address',
+				'users.image',
+				'users.birth_date',
+				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
+			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 	}
 
@@ -80,7 +94,7 @@ class UserService {
 			password: string;
 			address?: string;
 			birth_date?: Date;
-		}>,
+		}>
 	) {
 		return await db.updateTable('users').set(data).where('id', '=', id).execute();
 	}

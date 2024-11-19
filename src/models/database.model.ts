@@ -1,4 +1,4 @@
-import { UserTable } from './user.model.ts';
+import { UserTable } from './users/user.model.ts';
 
 import { PostsTable } from './posts/posts.model.ts';
 import { PostCategoryTable } from './posts/post_category.model.ts';
@@ -8,10 +8,18 @@ import { PostLikesTable } from './posts/post_likes.model.ts';
 import { PostRepliesTable } from './posts/post_replies.model.ts';
 
 import { CoordinatesTable } from './coordinates.model.ts';
+import { UserFollowerTable } from './users/user_follower.model.ts';
+import { SavedPostsTable } from './users/saved_posts_model.ts';
 
 export interface Database {
+	//users
 	users: UserTable;
+	user_followers: UserFollowerTable;
+	saved_posts: SavedPostsTable;
+
 	coordinates: CoordinatesTable;
+
+	//posts
 	posts: PostsTable;
 	post_categories: PostCategoryTable;
 	post_images: PostImagesTable;

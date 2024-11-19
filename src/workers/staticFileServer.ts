@@ -1,18 +1,6 @@
 import { fromFileUrl, extname } from 'https://deno.land/std/path/mod.ts';
-
+import MIME_TYPES from '../types/types.ts';
 const STATIC_DIR = '../../public';
-const MIME_TYPES: Record<string, string> = {
-	'.html': 'text/html',
-	'.css': 'text/css',
-	'.js': 'application/javascript',
-	'.json': 'application/json',
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.jpeg': 'image/jpeg',
-	'.gif': 'image/gif',
-	'.svg': 'image/svg+xml',
-	'.txt': 'text/plain',
-};
 
 const handler = async (request: Request): Promise<Response> => {
 	const url = new URL(request.url);
@@ -22,7 +10,11 @@ const handler = async (request: Request): Promise<Response> => {
 		const fileInfo = await Deno.stat(filePath);
 		if (fileInfo.isFile) {
 			const file = await Deno.readFile(filePath);
-			const contentType = MIME_TYPES[extname(filePath)] || 'application/octet-stream';
+			const contentType = MIME_TYPES[extname(filePath)];
+			if (!contentType) {
+				console.log('404: Not Found');
+				return new Response('404: Not Found', { status: 404 });
+			}
 			return new Response(file, { headers: { 'Content-Type': contentType } });
 		}
 		console.log('404: Not Found');

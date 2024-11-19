@@ -2,6 +2,7 @@ import type { Transaction } from 'kysely';
 import db from '../app/db.ts';
 import type { PostsTable } from '../models/posts/posts.model.ts';
 import type { Database } from '../models/database.model.ts';
+import { NotFoundError, UnauthorizedError } from '../utils/errors/httpErrors.ts';
 
 interface ReplyUser {
 	username: string;
@@ -37,7 +38,7 @@ class PostService {
 			.leftJoin(
 				'post_replies as nested_replies',
 				'replies.id',
-				'nested_replies.parent_reply_id',
+				'nested_replies.parent_reply_id'
 			)
 			.leftJoin('users as nested_users', 'nested_replies.user_id', 'nested_users.id')
 			.where('posts.id', '=', id)
@@ -192,26 +193,84 @@ class PostService {
 	}
 
 	async createPost(data: {
-		post_data: Omit<PostsTable, 'id' | 'likes' | 'post_date'>;
-		images?: string[];
-		videos?: string[];
+		post_data: Omit<PostsTable, 'id' | 'likes' | 'post_date' | 'coordinates_id'>;
+		coordinates?: { x: number; y: number }; // Make coordinates optional
+		images?: string[]; // Optional
+		videos?: string[]; // Optional
 	}) {
 		return await db.transaction().execute(async (trx: Transaction<Database>) => {
-			const inertedPost = await trx
+			let coordinatesId: number | null = null;
+
+			// If coordinates are provided, handle them
+			if (data.coordinates) {
+				// Check if the coordinate already exists
+				const existingCoordinate = await trx
+					.selectFrom('coordinates')
+					.select('id')
+					.where('x', '=', data.coordinates.x)
+					.where('y', '=', data.coordinates.y)
+					.executeTakeFirst();
+
+				// Insert a new coordinate if it doesn't exist
+				if (!existingCoordinate) {
+					const insertedCoordinate = await trx
+						.insertInto('coordinates')
+						.values(data.coordinates)
+						.returning('id')
+						.executeTakeFirstOrThrow();
+					coordinatesId = insertedCoordinate.id;
+				} else {
+					coordinatesId = existingCoordinate.id;
+				}
+			}
+
+			// Insert the post with coordinates_id set to null or the actual ID
+			const insertedPost = await trx
 				.insertInto('posts')
-				.values(data.post_data)
+				.values({
+					...data.post_data,
+					coordinates_id: coordinatesId, // Can be null if no coordinates
+				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
 
-			const postId = inertedPost.id;
+			const postId = insertedPost.id;
 
+			// Prepare and insert images and videos
 			const images = data.images?.map((image) => ({ post_id: postId, image })) ?? [];
 			const videos = data.videos?.map((video) => ({ post_id: postId, video })) ?? [];
 
-			await trx.insertInto('post_images').values(images).execute();
-			await trx.insertInto('post_videos').values(videos).execute();
+			if (images.length > 0) {
+				await trx.insertInto('post_images').values(images).execute();
+			}
+			if (videos.length > 0) {
+				await trx.insertInto('post_videos').values(videos).execute();
+			}
 
 			return postId;
+		});
+	}
+
+	async deletePost(id: number, user_id: number) {
+		return await db.transaction().execute(async (trx: Transaction<Database>) => {
+			// Check if the post exists and the user is the author
+			const post = await trx
+				.selectFrom('posts')
+				.selectAll()
+				.where('id', '=', id)
+				.executeTakeFirst();
+
+			if (!post) {
+				throw new NotFoundError('Post no encontrado');
+			}
+			if (post.user_id !== user_id) {
+				throw new UnauthorizedError('Usuario no autorizado');
+			}
+
+			// Delete the post
+			await trx.deleteFrom('posts').where('id', '=', id).execute();
+
+			return true;
 		});
 	}
 }

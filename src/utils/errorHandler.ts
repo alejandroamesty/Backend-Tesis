@@ -14,7 +14,7 @@ export function handleError(error: unknown, res: Response) {
 				case 23502:
 					return res.status(400).json({ msg: 'Solitud incorrecta' });
 				case 23503:
-					return res.status(404).json({ msg: 'Recurso no encontrado' });
+					return res.status(400).json({ msg: 'Violacion de llave foranea' });
 				default:
 					console.error(error);
 					return res.status(500).json({ msg: 'Error interno en base de datos' });
