@@ -1,7 +1,7 @@
 {
 	"tasks": {
-		"dev": "deno run -A --watch --env-file server.ts",
-		"migrate": "deno run -A npm:prisma@latest db push && deno run -A --unstable npm:prisma@latest generate --no-engine"
+		"start": "deno run -A --env-file server.ts",
+		"dev": "deno run -A --watch --env-file server.ts"
 	},
 
 	"imports": {

@@ -1,4 +1,4 @@
-import { fromFileUrl, extname } from 'https://deno.land/std/path/mod.ts';
+import { extname, fromFileUrl } from 'https://deno.land/std/path/mod.ts';
 import MIME_TYPES from '../types/types.ts';
 const STATIC_DIR = '../../public';
 
@@ -28,5 +28,5 @@ const handler = async (request: Request): Promise<Response> => {
 Deno.serve({ port: Number(Deno.env.get('STATIC_SERVER_PORT')) }, handler);
 
 console.log(
-	`Static file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`
+	`Static file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`,
 );

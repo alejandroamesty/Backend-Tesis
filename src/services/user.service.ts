@@ -94,7 +94,7 @@ class UserService {
 			password: string;
 			address?: string;
 			birth_date?: Date;
-		}>
+		}>,
 	) {
 		return await db.updateTable('users').set(data).where('id', '=', id).execute();
 	}

@@ -23,7 +23,7 @@ export function verifyTypes(
 		value: unknown | Array<unknown>;
 		type: AllowedTypes;
 		optional?: boolean;
-	}>
+	}>,
 ) {
 	for (const { value, type, optional } of data) {
 		if (Array.isArray(value)) {
@@ -46,7 +46,7 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 	if (arrayMatch) {
 		if (!Array.isArray(value)) {
 			throw new MismatchTypeError(
-				`Expected type ${type} but got type ${typeof value}`
+				`Expected type ${type} but got type ${typeof value}`,
 			);
 		}
 
@@ -94,11 +94,11 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 		if (actualType !== 'string' || !regex.test(value as string)) {
 			if (actualType !== 'string') {
 				throw new MismatchTypeError(
-					`Expected type password but got type ${actualType}`
+					`Expected type password but got type ${actualType}`,
 				);
 			}
 			throw new MismatchTypeError(
-				'Password must contain at least one lowercase and one uppercase letter and be at least 8 characters long'
+				'Password must contain at least one lowercase and one uppercase letter and be at least 8 characters long',
 			);
 		}
 	} else {

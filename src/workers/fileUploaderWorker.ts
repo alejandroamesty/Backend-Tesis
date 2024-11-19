@@ -29,8 +29,7 @@ const handler = async (request: Request): Promise<Response> => {
 		}
 
 		// Generate a unique file name with proper extension
-		const extension =
-			Object.keys(MIME_TYPES).find((key) => MIME_TYPES[key] === fileType) || '';
+		const extension = Object.keys(MIME_TYPES).find((key) => MIME_TYPES[key] === fileType) || '';
 
 		const fileName = `${crypto.randomUUID()}${extension}`;
 

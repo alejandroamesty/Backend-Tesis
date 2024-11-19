@@ -38,7 +38,7 @@ class PostService {
 			.leftJoin(
 				'post_replies as nested_replies',
 				'replies.id',
-				'nested_replies.parent_reply_id'
+				'nested_replies.parent_reply_id',
 			)
 			.leftJoin('users as nested_users', 'nested_replies.user_id', 'nested_users.id')
 			.where('posts.id', '=', id)
