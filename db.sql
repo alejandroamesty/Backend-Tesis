@@ -8,11 +8,7 @@ CREATE SEQUENCE "public".chat_message_chat_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".chat_message_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE SEQUENCE "public".chat_message_message_content_id_seq START WITH 1 INCREMENT BY 1;
-
 CREATE SEQUENCE "public".coordinates_id_seq START WITH 1 INCREMENT BY 1;
-
-CREATE SEQUENCE "public".message_content_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".post_category_id_seq AS integer START WITH 1 INCREMENT BY 1;
 
@@ -24,18 +20,15 @@ CREATE SEQUENCE "public".post_replies_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".post_videos_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE SEQUENCE "public".private_chat_chat_id_seq START WITH 1 INCREMENT BY 1;
-
-CREATE SEQUENCE "public".private_chat_id_seq START WITH 1 INCREMENT BY 1;
-
 CREATE SEQUENCE "public".saved_posts_post_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".saved_posts_user_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE SEQUENCE "public".users_id_seq AS integer START WITH 1 INCREMENT BY 1;
 
-CREATE  TABLE "public".chat ( 
+CREATE  TABLE "public".chats ( 
 	id                   bigserial  NOT NULL  ,
+	private_chat         boolean DEFAULT true   ,
 	description          text    ,
 	created_at           timestamp DEFAULT CURRENT_TIMESTAMP   ,
 	CONSTRAINT pk_chat PRIMARY KEY ( id )
@@ -48,23 +41,10 @@ CREATE  TABLE "public".coordinates (
 	CONSTRAINT pk_coordinates PRIMARY KEY ( id )
  );
 
-CREATE  TABLE "public".message_content ( 
-	id                   bigserial  NOT NULL  ,
-	content_type         text  NOT NULL  ,
-	content              text  NOT NULL  ,
-	CONSTRAINT pk_message_content PRIMARY KEY ( id )
- );
-
 CREATE  TABLE "public".post_categories ( 
 	id                   integer DEFAULT nextval('post_category_id_seq'::regclass) NOT NULL  ,
 	name                 text  NOT NULL  ,
 	CONSTRAINT pk_post_category PRIMARY KEY ( id )
- );
-
-CREATE  TABLE "public".private_chat ( 
-	id                   bigserial  NOT NULL  ,
-	chat_id              bigserial  NOT NULL  ,
-	CONSTRAINT pk_private_chat PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".users ( 
@@ -85,18 +65,20 @@ CREATE UNIQUE INDEX users_username_key ON "public".users ( username );
 
 CREATE UNIQUE INDEX users_email_key ON "public".users ( email );
 
-CREATE  TABLE "public".chat_member ( 
+CREATE  TABLE "public".chat_members ( 
 	id                   bigserial  NOT NULL  ,
 	user_id              bigint  NOT NULL  ,
 	chat_id              bigint  NOT NULL  ,
 	CONSTRAINT pk_chat_member PRIMARY KEY ( id )
  );
 
-CREATE  TABLE "public".chat_message ( 
+CREATE  TABLE "public".chat_messages ( 
 	id                   bigserial  NOT NULL  ,
 	user_id              bigint  NOT NULL  ,
 	chat_id              bigserial  NOT NULL  ,
-	message_content_id   bigserial  NOT NULL  ,
+	content_type         integer DEFAULT 1   ,
+	content              text  NOT NULL  ,
+	created_at           timestamp DEFAULT CURRENT_TIMESTAMP   ,
 	CONSTRAINT pk_chat_message PRIMARY KEY ( id )
  );
 
@@ -154,15 +136,13 @@ CREATE  TABLE "public".post_videos (
 	CONSTRAINT pk_post_videos PRIMARY KEY ( id )
  );
 
-ALTER TABLE "public".chat_member ADD CONSTRAINT fk_chat_member_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".chat_members ADD CONSTRAINT fk_chat_member_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".chat_member ADD CONSTRAINT fk_chat_member_chat FOREIGN KEY ( chat_id ) REFERENCES "public".chat( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".chat_members ADD CONSTRAINT fk_chat_member_chat FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".chat_message ADD CONSTRAINT fk_chat_message_chat FOREIGN KEY ( chat_id ) REFERENCES "public".chat( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_chat FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "public".chat_message ADD CONSTRAINT fk_chat_message_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id );
-
-ALTER TABLE "public".chat_message ADD CONSTRAINT fk_chat_message FOREIGN KEY ( message_content_id ) REFERENCES "public".message_content( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id );
 
 ALTER TABLE "public".post_images ADD CONSTRAINT fk_post_images_posts FOREIGN KEY ( post_id ) REFERENCES "public".posts( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -183,8 +163,6 @@ ALTER TABLE "public".posts ADD CONSTRAINT fk_post_users FOREIGN KEY ( user_id ) 
 ALTER TABLE "public".posts ADD CONSTRAINT fk_posts_post_category FOREIGN KEY ( category_id ) REFERENCES "public".post_categories( id ) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE "public".posts ADD CONSTRAINT fk_posts_coordinates FOREIGN KEY ( coordinates_id ) REFERENCES "public".coordinates( id ) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE "public".private_chat ADD CONSTRAINT fk_private_chat_chat FOREIGN KEY ( chat_id ) REFERENCES "public".chat( id );
 
 ALTER TABLE "public".saved_posts ADD CONSTRAINT fk_saved_posts_posts FOREIGN KEY ( post_id ) REFERENCES "public".posts( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 

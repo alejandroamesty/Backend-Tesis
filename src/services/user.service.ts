@@ -23,7 +23,7 @@ class UserService {
 	}
 
 	async getUserById(id: number) {
-		return await db
+		const user = await db
 			.selectFrom('users')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.id', '=', id)
@@ -40,10 +40,17 @@ class UserService {
 			])
 			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
+
+		if (user) {
+			const posts = await this.getUserPosts(id, 1); // Get first 10 posts
+			return { user, posts };
+		}
+
+		return { user: null, posts: [] };
 	}
 
 	async getUserByUsername(username: string) {
-		return await db
+		const user = await db
 			.selectFrom('users')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.username', '=', username)
@@ -60,10 +67,17 @@ class UserService {
 			])
 			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
+
+		if (user) {
+			const posts = await this.getUserPosts(user.id, 1); // Get first 10 posts
+			return { user, posts };
+		}
+
+		return { user: null, posts: [] };
 	}
 
 	async getUserByEmail(email: string) {
-		return await db
+		const user = await db
 			.selectFrom('users')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.email', '=', email)
@@ -80,6 +94,13 @@ class UserService {
 			])
 			.groupBy('users.id') // Ensure grouping for aggregate functions
 			.executeTakeFirst();
+
+		if (user) {
+			const posts = await this.getUserPosts(user.id, 1); // Get first 10 posts
+			return { user, posts };
+		}
+
+		return { user: null, posts: [] };
 	}
 
 	async updateUser(
@@ -101,6 +122,44 @@ class UserService {
 
 	async deleteUser(id: number) {
 		return await db.deleteFrom('users').where('id', '=', id).execute();
+	}
+
+	async getUserPosts(userId: number, page = 1) {
+		const limit = 10;
+		const offset = (page - 1) * limit;
+
+		const posts = await db
+			.selectFrom('posts')
+			.leftJoin('users', 'posts.user_id', 'users.id')
+			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+			.where('posts.user_id', '=', userId)
+			.select([
+				'posts.id as postId',
+				'posts.caption',
+				'posts.post_date',
+				'posts.likes',
+				db.fn.jsonAgg('post_images')
+					.filterWhere('post_images.image', 'is not', null)
+					.as('images'),
+				db.fn.jsonAgg('post_videos')
+					.filterWhere('post_videos.video', 'is not', null)
+					.as('videos'),
+			])
+			.groupBy('posts.id')
+			.orderBy('posts.post_date', 'desc') // Sort by most recent
+			.limit(limit)
+			.offset(offset)
+			.execute();
+
+		return posts.map((post) => ({
+			id: post.postId,
+			caption: post.caption,
+			post_date: post.post_date,
+			likes: post.likes,
+			images: post.images || [], // Placeholder for count
+			videos: post.videos || [], // Placeholder for count
+		}));
 	}
 }
 
