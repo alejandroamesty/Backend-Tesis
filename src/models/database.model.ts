@@ -14,6 +14,9 @@ import { ChatTable } from './chats/chats.model.ts';
 import { ChatMemberTable } from './chats/chat_members-model.ts';
 import { ChatMessageTable } from './chats/chat_messages.model.ts';
 
+import { CommunitiesTable } from './communities/communities.model.ts';
+import { EventsTable } from './communities/events.model.ts';
+
 export interface Database {
 	//users
 	users: UserTable;
@@ -34,4 +37,8 @@ export interface Database {
 	chats: ChatTable;
 	chat_members: ChatMemberTable;
 	chat_messages: ChatMessageTable;
+
+	//communities
+	communities: CommunitiesTable;
+	events: EventsTable;
 }

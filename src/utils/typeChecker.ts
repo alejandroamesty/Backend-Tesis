@@ -19,19 +19,35 @@ type AllowedTypes =
 	| `Array<${BaseTypes}>`;
 
 export function verifyTypes(
-	data: Array<{
-		value: unknown | Array<unknown>;
-		type: AllowedTypes;
-		optional?: boolean;
-	}>,
+	data:
+		| Array<{
+			value: unknown | Array<unknown>;
+			type: AllowedTypes;
+			optional?: boolean;
+		}>
+		| {
+			value: unknown | Array<unknown>;
+			type: AllowedTypes;
+			optional?: boolean;
+		},
 ) {
-	for (const { value, type, optional } of data) {
-		if (Array.isArray(value)) {
-			for (const val of value) {
-				checkType(val, type, optional);
+	if (Array.isArray(data)) {
+		for (const { value, type, optional } of data) {
+			if (Array.isArray(value)) {
+				for (const val of value) {
+					checkType(val, type, optional);
+				}
+			} else {
+				checkType(value, type, optional);
+			}
+		}
+	} else {
+		if (Array.isArray(data.value)) {
+			for (const val of data.value) {
+				checkType(val, data.type, data.optional);
 			}
 		} else {
-			checkType(value, type, optional);
+			checkType(data.value, data.type, data.optional);
 		}
 	}
 }

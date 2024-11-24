@@ -10,7 +10,7 @@ class PostController {
 	async getPost(req: Request, res: Response) {
 		try {
 			const id = parseInt(req.params.id);
-			verifyTypes([{ value: id, type: 'number' }]);
+			verifyTypes({ value: id, type: 'number' });
 			const post = await postService.getPost(id);
 			if (!post) throw new NotFoundError('Post no encontrado');
 
@@ -74,7 +74,7 @@ class PostController {
 				throw new UnauthorizedError('Usuario no encontrado');
 			}
 
-			verifyTypes([{ value: id, type: 'number' }]);
+			verifyTypes({ value: id, type: 'number' });
 
 			const post = await postService.deletePost(id, Number(user_id));
 

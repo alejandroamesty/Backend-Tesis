@@ -13,6 +13,10 @@ export default async function verifyChatMemberMiddleware(
 		const userId = req.user;
 		const chatId = Number(req.body.chatId || req.params.chatId);
 
+		if (!chatId || isNaN(chatId)) {
+			throw new ForbiddenError('No tienes permiso para acceder a este chat');
+		}
+
 		const isMember = await verifyChatMember(userId, chatId);
 
 		if (!isMember) {

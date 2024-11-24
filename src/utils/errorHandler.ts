@@ -1,5 +1,10 @@
 import { MismatchTypeError } from './errors/TypeError.ts';
-import { ForbiddenError, NotFoundError, UnauthorizedError } from './errors/httpErrors.ts';
+import {
+	BadRequestError,
+	ForbiddenError,
+	NotFoundError,
+	UnauthorizedError,
+} from './errors/httpErrors.ts';
 import { Response } from 'express';
 
 export function handleError(error: unknown, res: Response) {
@@ -21,15 +26,17 @@ export function handleError(error: unknown, res: Response) {
 			}
 		case error instanceof TypeError:
 			console.error(error);
-			return res.status(500).json({ msg: 'Error interno del servidor' });
+			return res.status(500).json({ msg: 'Error interno del servidor', data: error.message });
 		case error instanceof UnauthorizedError:
-			return res.status(401).json({ msg: 'Acceso no autorizado' });
+			return res.status(401).json({ msg: 'Acceso no autorizado', data: error.message });
 		case error instanceof ForbiddenError:
-			return res.status(403).json({ msg: 'Acceso denegado' });
+			return res.status(403).json({ msg: 'Acceso denegado', data: error.message });
 		case error instanceof MismatchTypeError:
-			return res.status(400).json({ msg: 'Solicitud incorrecta' });
+			return res.status(400).json({ msg: 'Solicitud incorrecta', data: error.message });
 		case error instanceof NotFoundError:
-			return res.status(404).json({ msg: 'Recurso no encontrado' });
+			return res.status(404).json({ msg: 'Recurso no encontrado', data: error.message });
+		case error instanceof BadRequestError:
+			return res.status(400).json({ msg: 'Solicitud incorrecta', data: error.message });
 		default:
 			console.error(error);
 			return res.status(500).json({ msg: 'Error interno del servidor' });
