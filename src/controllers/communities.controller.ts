@@ -49,7 +49,6 @@ class CommunitiesController {
 			});
 			res.status(201).json({ msg: 'Comunity creada con exito', data: result });
 		} catch (error) {
-			console.log(error);
 			handleError(error, res);
 		}
 	}
@@ -58,9 +57,12 @@ class CommunitiesController {
 		try {
 			const user_id = req.user;
 			const id = parseInt(req.params.id);
-			const { name, description, image } = req.body;
+			const { name, description, image, private_community } = req.body;
 
-			verifyTypes({ value: [name, description, image], type: 'string', optional: true });
+			verifyTypes([
+				{ value: [name, description, image], type: 'string', optional: true },
+				{ value: private_community, type: 'boolean', optional: true },
+			]);
 
 			if (!name && !description && !image) {
 				throw new BadRequestError('Se necesita al menos un campo para actualizar');
@@ -70,6 +72,7 @@ class CommunitiesController {
 				name: name,
 				description: description,
 				image: image,
+				private_community: private_community,
 			});
 			res.json({ msg: 'Comunity actualizada con exito', data: result });
 		} catch (error) {
@@ -83,6 +86,43 @@ class CommunitiesController {
 			const id = parseInt(req.params.id);
 			const result = await communitiesService.delete(Number(id), Number(user_id));
 			res.json({ msg: 'Comunity eliminada con exito', data: result });
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
+	async addMember(req: Request, res: Response) {
+		try {
+			const _user_id = req.user;
+			const community_id = parseInt(req.params.community_id);
+			const { user_id } = req.body;
+			verifyTypes([{ value: user_id, type: 'number' }]);
+
+			const result = await communitiesService.addMember(
+				Number(community_id),
+				Number(_user_id),
+				Number(user_id),
+			);
+			res.status(201).json({ msg: 'Miembro agregado con exito', data: result });
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
+	async removeMember(req: Request, res: Response) {
+		try {
+			const _user_id = req.user;
+			const member_id = parseInt(req.params.id);
+			const { user_id } = req.body;
+
+			verifyTypes([{ value: user_id, type: 'number' }]);
+
+			const result = await communitiesService.removeMember(
+				Number(user_id),
+				Number(_user_id),
+				Number(member_id),
+			);
+			res.status(200).json({ msg: 'Miembro eliminado con exito', data: result });
 		} catch (error) {
 			handleError(error, res);
 		}
