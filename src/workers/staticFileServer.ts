@@ -25,8 +25,11 @@ const handler = async (request: Request): Promise<Response> => {
 	}
 };
 
-Deno.serve({ port: Number(Deno.env.get('STATIC_SERVER_PORT')) }, handler);
-
-console.log(
-	`Static file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`,
-);
+Deno.serve({
+	port: Number(Deno.env.get('STATIC_SERVER_PORT')),
+	onListen() {
+		console.log(
+			`Static file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`,
+		);
+	},
+}, handler);

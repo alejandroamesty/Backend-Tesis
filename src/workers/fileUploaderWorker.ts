@@ -52,4 +52,11 @@ const handler = async (request: Request): Promise<Response> => {
 	}
 };
 
-Deno.serve({ port: Number(Deno.env.get('FILE_UPLOADER_PORT')) }, handler);
+Deno.serve({
+	port: Number(Deno.env.get('FILE_UPLOADER_PORT')),
+	onListen() {
+		console.log(
+			`Upload file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`,
+		);
+	},
+}, handler);
