@@ -170,11 +170,13 @@ ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_chat FOREIGN K
 
 ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id );
 
-ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_chats FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE CASCADE ON UPDATE CASCADE;
-
 ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_users FOREIGN KEY ( owner_id ) REFERENCES "public".users( id ) ON DELETE SET NULL ON UPDATE SET NULL;
 
+ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_chats FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+
 ALTER TABLE "public".events ADD CONSTRAINT fk_events_communities FOREIGN KEY ( community_id ) REFERENCES "public".communities( id ) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "public".events ADD CONSTRAINT fk_events_coordinates FOREIGN KEY ( event_location ) REFERENCES "public".coordinates( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "public".post_images ADD CONSTRAINT fk_post_images_posts FOREIGN KEY ( post_id ) REFERENCES "public".posts( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
