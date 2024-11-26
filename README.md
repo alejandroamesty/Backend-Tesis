@@ -6,7 +6,7 @@ NOT FULLY IMPLEMENTED CONTENT
 
 **Requirements:**
 
-- Deno: deno 2.0.3
+- Deno: deno 2.1.1
 - Recommended: Deno extension in vscode:
   https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno&ssr=false#review-details
   or install using command palette (Ctrl + P) and paste:
