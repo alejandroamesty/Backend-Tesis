@@ -73,7 +73,8 @@ CREATE  TABLE "public".chat_members (
 	id                   bigint DEFAULT nextval('chat_member_id_seq'::regclass) NOT NULL  ,
 	user_id              bigint  NOT NULL  ,
 	chat_id              bigint  NOT NULL  ,
-	CONSTRAINT pk_chat_member PRIMARY KEY ( id )
+	CONSTRAINT pk_chat_member PRIMARY KEY ( id ),
+	CONSTRAINT unq_chat_member UNIQUE ( user_id, chat_id ) 
  );
 
 CREATE  TABLE "public".chat_messages ( 
@@ -93,6 +94,7 @@ CREATE  TABLE "public".communities (
 	image                text    ,
 	name                 text  NOT NULL  ,
 	description          text    ,
+	private_community    boolean DEFAULT false   ,
 	CONSTRAINT pk_communities PRIMARY KEY ( id )
  );
 
