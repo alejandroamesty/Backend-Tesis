@@ -7,28 +7,18 @@ class RepliesController {
 	async postReply(req: Request, res: Response) {
 		try {
 			const { postId, content, parentReplyId } = req.body;
-			const userId = req.user;
+			const userId = Number(req.user);
 
 			verifyTypes([
-				{
-					value: content,
-					type: 'string',
-				},
-				{
-					value: postId,
-					type: 'number',
-				},
-				{
-					value: parentReplyId,
-					type: 'number',
-					optional: true,
-				},
+				{ value: content, type: 'string' },
+				{ value: [postId, userId], type: 'number' },
+				{ value: parentReplyId, type: 'number', optional: true },
 			]);
 
 			const reply = await RepliesService.postReply(
-				postId as number,
-				userId as number,
-				content as string,
+				postId,
+				userId,
+				content,
 				parentReplyId,
 			);
 			res.json({ msg: 'Comentario agregado con exito', reply });
@@ -40,16 +30,16 @@ class RepliesController {
 	async deleteReply(req: Request, res: Response) {
 		try {
 			const { replyId } = req.body;
-			const userId = req.user;
+			const userId = Number(req.user);
 
 			verifyTypes([
 				{
-					value: replyId,
+					value: [replyId, userId],
 					type: 'number',
 				},
 			]);
 
-			await RepliesService.deleteReply(replyId as number, userId as number);
+			await RepliesService.deleteReply(replyId, userId);
 			res.json({ msg: 'Comentario eliminado con exito' });
 		} catch (error) {
 			handleError(error, res);

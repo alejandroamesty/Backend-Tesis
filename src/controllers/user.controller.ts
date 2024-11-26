@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import userService from '../services/user.service.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
 import { handleError } from '../utils/errorHandler.ts';
-import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 
 class UserController {
 	async getAll(_req: Request, res: Response) {
@@ -20,7 +19,8 @@ class UserController {
 
 	async getById(req: Request, res: Response) {
 		try {
-			const id = parseInt(req.params.id);
+			const id = Number(req.params.id);
+			verifyTypes({ value: id, type: 'number' });
 			const user = await userService.getUserById(id);
 			res.json({
 				msg: 'Data encontrada con exito',
@@ -34,6 +34,7 @@ class UserController {
 	async getByEmail(req: Request, res: Response) {
 		try {
 			const email = req.params.email;
+			verifyTypes({ value: email, type: 'email' });
 			const user = await userService.getUserByEmail(email);
 			res.json({
 				msg: 'Data encontrada con exito',
@@ -47,6 +48,7 @@ class UserController {
 	async getByUsername(req: Request, res: Response) {
 		try {
 			const username = req.params.username;
+			verifyTypes({ value: username, type: 'string' });
 			const user = await userService.getUserByUsername(username);
 			res.json({
 				msg: 'Data encontrada con exito',
@@ -59,10 +61,8 @@ class UserController {
 
 	async update(req: Request, res: Response) {
 		try {
-			const id = req.user;
-			if (!id) {
-				throw new UnauthorizedError('Invalid token');
-			}
+			const id = Number(req.user);
+
 			const userData = req.body as {
 				username?: string;
 				image?: string;
@@ -86,13 +86,15 @@ class UserController {
 						userData.email,
 						userData.password,
 						userData.address,
+						userData.birth_date,
 					],
 					type: 'string',
 					optional: true,
 				},
+				{ value: id, type: 'number' },
 			]);
 
-			const user = await userService.updateUser(Number(id), userData);
+			const user = await userService.updateUser(id, userData);
 			res.json({
 				msg: 'Data actualizada con exito',
 				data: user,
@@ -104,11 +106,9 @@ class UserController {
 
 	async delete(req: Request, res: Response) {
 		try {
-			const id = req.user;
-			if (!id) {
-				throw new UnauthorizedError('Invalid token');
-			}
-			const user = await userService.deleteUser(Number(id));
+			const id = Number(req.user);
+			verifyTypes({ value: id, type: 'number' });
+			const user = await userService.deleteUser(id);
 			res.json({
 				msg: 'Data eliminada con exito',
 				data: user,

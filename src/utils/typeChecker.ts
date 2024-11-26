@@ -57,6 +57,10 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 		return;
 	}
 
+	if (!value) {
+		throw new MismatchTypeError('Value is required');
+	}
+
 	const arrayMatch = /^Array<(.+)>$/.exec(type);
 
 	if (arrayMatch) {

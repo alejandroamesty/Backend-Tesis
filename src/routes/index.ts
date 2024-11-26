@@ -8,6 +8,7 @@ import repliesRouter from './app/replies.router.ts';
 import followerRouter from './app/followers.router.ts';
 import chatsRouter from './app/chats.router.ts';
 import communitiesRouter from './app/communities.router.ts';
+import eventsRouter from './app/events.router.ts';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router
 	.use('/replies', repliesRouter)
 	.use('/followers', followerRouter)
 	.use('/chats', chatsRouter)
-	.use('/communities', communitiesRouter);
+	.use('/communities', communitiesRouter)
+	.use('/events', eventsRouter);
 
 export default router;

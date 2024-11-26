@@ -2,14 +2,17 @@
 import { Request, Response } from 'express';
 import followService from '../services/follow.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
-import { ForbiddenError, UnauthorizedError } from '../utils/errors/httpErrors.ts';
+import { BadRequestError } from '../utils/errors/httpErrors.ts';
+import { verifyTypes } from '../utils/typeChecker.ts';
 
 class FollowerController {
 	async getUserFollowers(req: Request, res: Response) {
 		try {
-			const { userId } = req.params;
+			const userId = Number(req.params.userId);
 
-			const followers = await followService.getFollowers(parseInt(userId));
+			verifyTypes({ value: userId, type: 'number' });
+
+			const followers = await followService.getFollowers(userId);
 
 			res.status(200).json({
 				msg: 'Seguidores encontrados con exito',
@@ -25,17 +28,16 @@ class FollowerController {
 
 	async followUser(req: Request, res: Response) {
 		try {
-			const { follow } = req.body;
-			const userId = req.user;
-			if (!userId) {
-				throw new UnauthorizedError('Unauthorized');
+			const follow = Number(req.body.follow);
+			const userId = Number(req.user);
+
+			verifyTypes({ value: [follow, userId], type: 'number' });
+
+			if (follow === userId) {
+				throw new BadRequestError('You cannot follow yourself');
 			}
 
-			if (follow === Number(userId)) {
-				throw new ForbiddenError('You cannot follow yourself');
-			}
-
-			const result = await followService.followUser(follow, Number(userId));
+			const result = await followService.followUser(follow, userId);
 
 			res.status(201).json({
 				msg: 'Usuario seguido con exito',
@@ -48,13 +50,12 @@ class FollowerController {
 
 	async unfollowUser(req: Request, res: Response) {
 		try {
-			const { follow } = req.body;
-			const userId = req.user;
-			if (!userId) {
-				throw new UnauthorizedError('Unauthorized');
-			}
+			const follow = Number(req.body.follow);
+			const userId = Number(req.user);
 
-			const result = await followService.unfollowUser(follow, Number(userId));
+			verifyTypes({ value: [follow, userId], type: 'number' });
+
+			const result = await followService.unfollowUser(follow, userId);
 
 			res.status(200).json({
 				msg: 'Usuario dejado de seguir con exito',

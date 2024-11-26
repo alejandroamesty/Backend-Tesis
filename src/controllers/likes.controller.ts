@@ -3,16 +3,18 @@ import { Request, Response } from 'express';
 import likesService from '../services/likes.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
 import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
+import { verifyTypes } from '../utils/typeChecker.ts';
 
 class LikesController {
 	async likePost(req: Request, res: Response) {
 		try {
-			const userId = req.user;
+			const userId = Number(req.user);
 			if (!userId) {
 				throw new UnauthorizedError('No autorizado');
 			}
-			const postId = parseInt(req.body.post_id);
-			const like = await likesService.likePost(postId, Number(userId));
+			const postId = Number(req.body.post_id);
+			verifyTypes({ value: [postId, userId], type: 'number' });
+			const like = await likesService.likePost(postId, userId);
 
 			res.json({
 				msg: 'Like agregado con exito',
@@ -25,12 +27,13 @@ class LikesController {
 
 	async unlikePost(req: Request, res: Response) {
 		try {
-			const userId = req.user;
+			const userId = Number(req.user);
 			if (!userId) {
 				throw new UnauthorizedError('No autorizado');
 			}
-			const postId = parseInt(req.body.post_id);
-			const unlike = await likesService.unlikePost(postId, Number(userId));
+			const postId = Number(req.body.post_id);
+			verifyTypes({ value: [postId, userId], type: 'number' });
+			const unlike = await likesService.unlikePost(postId, userId);
 
 			res.json({
 				msg: 'Like eliminado con exito',
@@ -43,7 +46,8 @@ class LikesController {
 
 	async getPostLikes(req: Request, res: Response) {
 		try {
-			const postId = parseInt(req.params.id);
+			const postId = Number(req.params.id);
+			verifyTypes({ value: postId, type: 'number' });
 			const likes = await likesService.getPostLikes(postId);
 
 			res.json({

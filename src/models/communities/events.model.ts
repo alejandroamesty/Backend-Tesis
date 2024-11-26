@@ -5,7 +5,7 @@ export interface EventsTable {
 	community_id: number;
 	event_location: number;
 	name: string;
-	description: string;
+	description: string | null;
 	event_date: Date;
 }
 

@@ -100,7 +100,6 @@ class AuthController {
 			}
 
 			const token = await generateToken({ id: user.id });
-			res.setHeader('Authorization', `Bearer ${token}`);
 
 			return res.json({
 				msg: 'Usuario logueado con exito',

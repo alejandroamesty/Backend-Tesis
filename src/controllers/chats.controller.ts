@@ -7,10 +7,10 @@ import { MismatchTypeError } from '../utils/errors/TypeError.ts';
 class ChatController {
 	async createPrivateChat(req: Request, res: Response) {
 		try {
-			const user1 = req.user;
+			const user1 = Number(req.user);
 			const { user } = req.body;
 
-			verifyTypes([{ value: user, type: 'number' }]);
+			verifyTypes([{ value: [user, user1], type: 'number' }]);
 
 			const chatId = await chatService.createPrivateChat(user1, user);
 
@@ -27,14 +27,15 @@ class ChatController {
 
 	async insertMessage(req: Request, res: Response) {
 		try {
-			const userId = req.user;
+			const userId = Number(req.user);
 			const { chatId, content, contentType } = req.body;
 
 			verifyTypes([
-				{ value: [chatId, contentType], type: 'number' },
+				{ value: [chatId, contentType, userId], type: 'number' },
 				{ value: content, type: 'string' },
 			]);
 
+			// 1: Texto, 2: Imagen, 3: Video
 			if (0 > contentType || contentType > 3) {
 				throw new MismatchTypeError('contentType solo puede ser 1 | 2 | 3');
 			}
@@ -52,7 +53,7 @@ class ChatController {
 
 	async getChats(req: Request, res: Response) {
 		try {
-			const userId = req.user;
+			const userId = Number(req.user);
 
 			const chats = await chatService.getChats(userId);
 
@@ -67,8 +68,8 @@ class ChatController {
 
 	async getChatMessages(req: Request, res: Response) {
 		try {
-			const chatId = parseInt(req.params.chatId);
-			let page = parseInt(req.query.page as string);
+			const chatId = Number(req.params.chatId);
+			let page = Number(req.query.page as string);
 
 			verifyTypes([
 				{ value: chatId, type: 'number' },
