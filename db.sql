@@ -170,7 +170,7 @@ ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_chat FOREIGN K
 
 ALTER TABLE "public".chat_messages ADD CONSTRAINT fk_chat_message_users FOREIGN KEY ( user_id ) REFERENCES "public".users( id );
 
-ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_chats FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE SET NULL ON UPDATE SET NULL;
+ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_chats FOREIGN KEY ( chat_id ) REFERENCES "public".chats( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "public".communities ADD CONSTRAINT fk_communities_users FOREIGN KEY ( owner_id ) REFERENCES "public".users( id ) ON DELETE SET NULL ON UPDATE SET NULL;
 

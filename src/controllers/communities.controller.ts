@@ -64,7 +64,7 @@ class CommunitiesController {
 				{ value: private_community, type: 'boolean', optional: true },
 			]);
 
-			if (!name && !description && !image) {
+			if (!name && !description && image === undefined && private_community === undefined) {
 				throw new BadRequestError('Se necesita al menos un campo para actualizar');
 			}
 
@@ -112,17 +112,31 @@ class CommunitiesController {
 	async removeMember(req: Request, res: Response) {
 		try {
 			const _user_id = req.user;
-			const member_id = parseInt(req.params.id);
+			const community_id = parseInt(req.params.community_id);
 			const { user_id } = req.body;
 
 			verifyTypes([{ value: user_id, type: 'number' }]);
 
 			const result = await communitiesService.removeMember(
-				Number(user_id),
+				Number(community_id),
 				Number(_user_id),
-				Number(member_id),
+				Number(user_id),
 			);
 			res.status(200).json({ msg: 'Miembro eliminado con exito', data: result });
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
+	async joinCommunity(req: Request, res: Response) {
+		try {
+			const user_id = req.user;
+			const community_id = parseInt(req.params.id);
+			const result = await communitiesService.joinCommunity(
+				Number(community_id),
+				Number(user_id),
+			);
+			res.status(201).json({ msg: 'Te has unido a la comunidad con exito', data: result });
 		} catch (error) {
 			handleError(error, res);
 		}

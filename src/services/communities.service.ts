@@ -149,7 +149,7 @@ class CommunitiesService {
 			}
 
 			// Delete the community
-			await trx.deleteFrom('communities').where('id', '=', id).execute();
+			await trx.deleteFrom('chats').where('id', '=', community.chat_id).execute();
 		});
 	}
 
@@ -221,6 +221,39 @@ class CommunitiesService {
 				.deleteFrom('chat_members')
 				.where('chat_id', '=', community.chat_id)
 				.where('user_id', '=', new_member_id)
+				.execute();
+		});
+	}
+
+	async joinCommunity(community_id: number, user_id: number) {
+		return await db.transaction().execute(async (trx) => {
+			// Check if the community is private
+			const [community] = await trx
+				.selectFrom('communities')
+				.where('id', '=', community_id)
+				.selectAll()
+				.execute();
+
+			if (community.private_community) {
+				throw new ForbiddenError('Esta comunidad es privada');
+			}
+
+			// Check if the user is already in the community
+			const [isMember] = await trx
+				.selectFrom('chat_members')
+				.where('chat_id', '=', community.chat_id)
+				.where('user_id', '=', user_id)
+				.selectAll()
+				.execute();
+
+			if (isMember) {
+				throw new ForbiddenError('Ya eres miembro de esta comunidad');
+			}
+
+			// Add the user to the community
+			await trx
+				.insertInto('chat_members')
+				.values({ chat_id: community.chat_id, user_id: user_id })
 				.execute();
 		});
 	}
