@@ -58,7 +58,7 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 	}
 
 	if (!value) {
-		throw new MismatchTypeError('Value is required');
+		throw new MismatchTypeError('Expected a value but got undefined or NaN');
 	}
 
 	const arrayMatch = /^Array<(.+)>$/.exec(type);

@@ -7,6 +7,7 @@ export interface EventsTable {
 	name: string;
 	description: string | null;
 	event_date: Date;
+	cancelled: Generated<boolean>;
 }
 
 export type Events = Selectable<EventsTable>;
