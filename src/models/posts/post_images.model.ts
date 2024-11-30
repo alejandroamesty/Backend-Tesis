@@ -1,8 +1,8 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostImagesTable {
-	id: Generated<number>;
-	post_id: number;
+	id: Generated<string>;
+	post_id: string;
 	image: string;
 }
 

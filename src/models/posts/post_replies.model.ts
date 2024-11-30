@@ -1,10 +1,10 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostRepliesTable {
-	id: Generated<number>;
-	post_id: number;
-	user_id: number;
-	parent_reply_id: number | null;
+	id: Generated<string>;
+	post_id: string;
+	user_id: string;
+	parent_reply_id: string | null;
 	content: string;
 	created_at: Generated<Date>;
 }

@@ -7,8 +7,8 @@ import { BadRequestError } from '../utils/errors/httpErrors.ts';
 class CommunitiesController {
 	async getAll(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			verifyTypes({ value: user_id, type: 'number' });
+			const user_id = req.user;
+			verifyTypes({ value: user_id, type: 'uuid' });
 			const communities = await communitiesService.getAll(user_id);
 			res.json({ msg: 'Comunities encontradas con exito', data: communities });
 		} catch (error) {
@@ -18,10 +18,10 @@ class CommunitiesController {
 
 	async getById(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const id = Number(req.params.id);
+			const user_id = req.user;
+			const id = req.params.id;
 
-			verifyTypes([{ value: [user_id, id], type: 'number' }]);
+			verifyTypes([{ value: [user_id, id], type: 'uuid' }]);
 
 			const community = await communitiesService.getById(id, user_id);
 			res.json({ msg: 'Comunity encontrada con exito', data: community });
@@ -32,12 +32,12 @@ class CommunitiesController {
 
 	async create(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
+			const user_id = req.user;
 			const { private_community, members, image, name, description } = req.body;
 
 			verifyTypes([
 				{ value: private_community, type: 'boolean' },
-				{ value: [...members, user_id], type: 'number', optional: true },
+				{ value: [...members, user_id], type: 'uuid', optional: true },
 				{ value: [image, description], type: 'string', optional: true },
 				{ value: name, type: 'string' },
 			]);
@@ -58,14 +58,14 @@ class CommunitiesController {
 
 	async update(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const id = Number(req.params.id);
+			const user_id = req.user;
+			const id = req.params.id;
 			const { name, description, image, private_community } = req.body;
 
 			verifyTypes([
 				{ value: [name, description, image], type: 'string', optional: true },
 				{ value: private_community, type: 'boolean', optional: true },
-				{ value: [id, user_id], type: 'number' },
+				{ value: [id, user_id], type: 'uuid' },
 			]);
 
 			if (!name && !description && image === undefined && private_community === undefined) {
@@ -86,9 +86,9 @@ class CommunitiesController {
 
 	async delete(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const id = Number(req.params.id);
-			verifyTypes([{ value: [id, user_id], type: 'number' }]);
+			const user_id = req.user;
+			const id = req.params.id;
+			verifyTypes([{ value: [id, user_id], type: 'uuid' }]);
 			const result = await communitiesService.delete(id, user_id);
 			res.json({ msg: 'Comunity eliminada con exito', data: result });
 		} catch (error) {
@@ -98,10 +98,10 @@ class CommunitiesController {
 
 	async addMember(req: Request, res: Response) {
 		try {
-			const _user_id = Number(req.user);
-			const community_id = Number(req.params.community_id);
-			const user_id = Number(req.body.user_id);
-			verifyTypes([{ value: [_user_id, community_id, user_id], type: 'number' }]);
+			const _user_id = req.user;
+			const community_id = req.params.community_id;
+			const user_id = req.body.user_id;
+			verifyTypes([{ value: [_user_id, community_id, user_id], type: 'uuid' }]);
 
 			const result = await communitiesService.addMember(
 				community_id,
@@ -116,11 +116,11 @@ class CommunitiesController {
 
 	async removeMember(req: Request, res: Response) {
 		try {
-			const _user_id = Number(req.user);
-			const community_id = Number(req.params.community_id);
-			const user_id = Number(req.body.user_id);
+			const _user_id = req.user;
+			const community_id = req.params.community_id;
+			const user_id = req.body.user_id;
 
-			verifyTypes([{ value: user_id, type: 'number' }]);
+			verifyTypes([{ value: [user_id, community_id, _user_id], type: 'uuid' }]);
 
 			const result = await communitiesService.removeMember(
 				community_id,
@@ -135,12 +135,12 @@ class CommunitiesController {
 
 	async joinCommunity(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const community_id = Number(req.params.id);
-			verifyTypes([{ value: [user_id, community_id], type: 'number' }]);
+			const user_id = req.user;
+			const community_id = req.params.id;
+			verifyTypes([{ value: [user_id, community_id], type: 'uuid' }]);
 			const result = await communitiesService.joinCommunity(
-				Number(community_id),
-				Number(user_id),
+				community_id,
+				user_id,
 			);
 			res.status(201).json({ msg: 'Te has unido a la comunidad con exito', data: result });
 		} catch (error) {

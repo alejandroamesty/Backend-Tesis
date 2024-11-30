@@ -14,6 +14,7 @@ type AllowedTypes =
 	| BaseTypes
 	| 'email'
 	| 'password'
+	| 'uuid'
 	| 'image'
 	| 'video'
 	| `Array<${BaseTypes}>`;
@@ -79,51 +80,77 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 
 	const actualType = typeof value;
 
-	if (type === 'image') {
-		const regex = /\.(png|jpg|jpeg|webp)$/g;
-		if (actualType !== 'string' || !regex.test(value as string)) {
-			if (actualType !== 'string') {
-				throw new MismatchTypeError(`Expected type image but got type ${actualType}`);
+	switch (type) {
+		case 'uuid': {
+			const regex =
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/g;
+			if (actualType !== 'string' || !regex.test(value as string)) {
+				if (actualType !== 'string') {
+					throw new MismatchTypeError(
+						`Se esperaba el tipo uuid pero se obtuvo el tipo ${actualType}`,
+					);
+				}
+				throw new MismatchTypeError('Invalid uuid');
 			}
-			throw new MismatchTypeError('Invalid image');
+			break;
 		}
-		return;
-	}
 
-	if (type === 'video') {
-		const regex = /\.(mp4|webm|ogg)$/g;
-		if (actualType !== 'string' || !regex.test(value as string)) {
-			if (actualType !== 'string') {
-				throw new MismatchTypeError(`Expected type video but got type ${actualType}`);
+		case 'email': {
+			const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+			if (actualType !== 'string' || !regex.test(value as string)) {
+				if (actualType !== 'string') {
+					throw new MismatchTypeError(
+						`Se esperaba el tipo email pero se obtuvo el tipo ${actualType}`,
+					);
+				}
+				throw new MismatchTypeError('Invalid email');
 			}
-			throw new MismatchTypeError('Invalid video');
+			break;
 		}
-		return;
-	}
 
-	if (type === 'email') {
-		const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
-		if (actualType !== 'string' || !regex.test(value as string)) {
-			if (actualType !== 'string') {
-				throw new MismatchTypeError(`Expected type email but got type ${actualType}`);
-			}
-			throw new MismatchTypeError('Invalid email');
-		}
-	} else if (type === 'password') {
-		const regex = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-		if (actualType !== 'string' || !regex.test(value as string)) {
-			if (actualType !== 'string') {
+		case 'password': {
+			const regex = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+			if (actualType !== 'string' || !regex.test(value as string)) {
+				if (actualType !== 'string') {
+					throw new MismatchTypeError(
+						`Se esperaba el tipo password pero se obtuvo el tipo ${actualType}`,
+					);
+				}
 				throw new MismatchTypeError(
-					`Expected type password but got type ${actualType}`,
+					'La contraseña debe contener al menos una letra minúscula y una mayúscula y tener al menos 8 caracteres',
 				);
 			}
-			throw new MismatchTypeError(
-				'Password must contain at least one lowercase and one uppercase letter and be at least 8 characters long',
-			);
+			break;
 		}
-	} else {
-		if (actualType !== type) {
-			throw new MismatchTypeError(`Expected type ${type} but got type ${actualType}`);
+
+		case 'image': {
+			const regex = /\.(png|jpg|jpeg|webp)$/g;
+			if (actualType !== 'string' || !regex.test(value as string)) {
+				if (actualType !== 'string') {
+					throw new MismatchTypeError(`Expected type image but got type ${actualType}`);
+				}
+				throw new MismatchTypeError('Invalid image');
+			}
+			break;
+		}
+
+		case 'video': {
+			const regex = /\.(mp4|webm|ogg)$/g;
+			if (actualType !== 'string' || !regex.test(value as string)) {
+				if (actualType !== 'string') {
+					throw new MismatchTypeError(`Expected type video but got type ${actualType}`);
+				}
+				throw new MismatchTypeError('Invalid video');
+			}
+
+			break;
+		}
+
+		default: {
+			if (actualType !== type) {
+				throw new MismatchTypeError(`Expected type ${type} but got type ${actualType}`);
+			}
+			break;
 		}
 	}
 }

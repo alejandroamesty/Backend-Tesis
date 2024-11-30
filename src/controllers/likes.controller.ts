@@ -8,12 +8,12 @@ import { verifyTypes } from '../utils/typeChecker.ts';
 class LikesController {
 	async likePost(req: Request, res: Response) {
 		try {
-			const userId = Number(req.user);
+			const userId = req.user;
 			if (!userId) {
 				throw new UnauthorizedError('No autorizado');
 			}
-			const postId = Number(req.body.post_id);
-			verifyTypes({ value: [postId, userId], type: 'number' });
+			const postId = req.body.post_id;
+			verifyTypes({ value: [postId, userId], type: 'uuid' });
 			const like = await likesService.likePost(postId, userId);
 
 			res.json({
@@ -27,12 +27,12 @@ class LikesController {
 
 	async unlikePost(req: Request, res: Response) {
 		try {
-			const userId = Number(req.user);
+			const userId = req.user;
 			if (!userId) {
 				throw new UnauthorizedError('No autorizado');
 			}
-			const postId = Number(req.body.post_id);
-			verifyTypes({ value: [postId, userId], type: 'number' });
+			const postId = req.body.post_id;
+			verifyTypes({ value: [postId, userId], type: 'uuid' });
 			const unlike = await likesService.unlikePost(postId, userId);
 
 			res.json({
@@ -46,8 +46,8 @@ class LikesController {
 
 	async getPostLikes(req: Request, res: Response) {
 		try {
-			const postId = Number(req.params.id);
-			verifyTypes({ value: postId, type: 'number' });
+			const postId = req.params.id;
+			verifyTypes({ value: postId, type: 'uuid' });
 			const likes = await likesService.getPostLikes(postId);
 
 			res.json({

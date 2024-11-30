@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import userService from '../services/user.service.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
 import { handleError } from '../utils/errorHandler.ts';
+import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 
 class UserController {
 	async getAll(_req: Request, res: Response) {
@@ -19,8 +20,8 @@ class UserController {
 
 	async getById(req: Request, res: Response) {
 		try {
-			const id = Number(req.params.id);
-			verifyTypes({ value: id, type: 'number' });
+			const id = req.params.id;
+			verifyTypes({ value: id, type: 'uuid' });
 			const user = await userService.getUserById(id);
 			res.json({
 				msg: 'Data encontrada con exito',
@@ -61,7 +62,11 @@ class UserController {
 
 	async update(req: Request, res: Response) {
 		try {
-			const id = Number(req.user);
+			const id = req.user;
+
+			if (!id) {
+				throw new UnauthorizedError('No estas autorizado para realizar esta accion');
+			}
 
 			const userData = req.body as {
 				username?: string;
@@ -76,6 +81,7 @@ class UserController {
 			};
 
 			verifyTypes([
+				{ value: id, type: 'uuid' },
 				{
 					value: [
 						userData.username,
@@ -106,9 +112,15 @@ class UserController {
 
 	async delete(req: Request, res: Response) {
 		try {
-			const id = Number(req.user);
-			verifyTypes({ value: id, type: 'number' });
+			const id = req.user;
+
+			if (!id) {
+				throw new UnauthorizedError('No estas autorizado para realizar esta accion');
+			}
+
+			verifyTypes({ value: id, type: 'uuid' });
 			const user = await userService.deleteUser(id);
+			console.log(user);
 			res.json({
 				msg: 'Data eliminada con exito',
 				data: user,

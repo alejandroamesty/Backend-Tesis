@@ -1,9 +1,9 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface ChatMessageTable {
-	id: Generated<number>;
-	chat_id: number;
-	user_id: number;
+	id: Generated<string>;
+	chat_id: string;
+	user_id: string;
 	content_type: 1 | 2 | 3;
 	content: string;
 	created_at: Generated<Date>;

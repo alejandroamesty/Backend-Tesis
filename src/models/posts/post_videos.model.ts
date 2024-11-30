@@ -1,8 +1,8 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostVideosTable {
-	id: Generated<number>;
-	post_id: number;
+	id: Generated<string>;
+	post_id: string;
 	video: string;
 }
 

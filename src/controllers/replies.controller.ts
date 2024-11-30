@@ -7,12 +7,12 @@ class RepliesController {
 	async postReply(req: Request, res: Response) {
 		try {
 			const { postId, content, parentReplyId } = req.body;
-			const userId = Number(req.user);
+			const userId = req.user;
 
 			verifyTypes([
 				{ value: content, type: 'string' },
-				{ value: [postId, userId], type: 'number' },
-				{ value: parentReplyId, type: 'number', optional: true },
+				{ value: [postId, userId], type: 'uuid' },
+				{ value: parentReplyId, type: 'uuid', optional: true },
 			]);
 
 			const reply = await RepliesService.postReply(
@@ -30,12 +30,12 @@ class RepliesController {
 	async deleteReply(req: Request, res: Response) {
 		try {
 			const { replyId } = req.body;
-			const userId = Number(req.user);
+			const userId = req.user;
 
 			verifyTypes([
 				{
 					value: [replyId, userId],
-					type: 'number',
+					type: 'uuid',
 				},
 			]);
 

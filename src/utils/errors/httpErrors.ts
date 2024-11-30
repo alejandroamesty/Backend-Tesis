@@ -5,6 +5,13 @@ export class UnauthorizedError extends Error {
 	}
 }
 
+export class ExpiredTokenError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'ExpiredTokenError';
+	}
+}
+
 export class ForbiddenError extends Error {
 	constructor(message: string) {
 		super(message);

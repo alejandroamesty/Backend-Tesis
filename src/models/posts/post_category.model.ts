@@ -1,7 +1,7 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostCategoryTable {
-	id: Generated<number>;
+	id: Generated<string>;
 	name: string;
 }
 

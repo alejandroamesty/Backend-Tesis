@@ -10,14 +10,14 @@ interface ReplyUser {
 }
 
 interface NestedReply {
-	id: number;
+	id: string;
 	user: ReplyUser;
 	content: string;
 	created_at: Date;
 }
 
 interface ReplyType {
-	id: number;
+	id: string;
 	user: ReplyUser;
 	content: string;
 	created_at: Date;
@@ -25,7 +25,7 @@ interface ReplyType {
 }
 
 class PostService {
-	async getPost(id: number) {
+	async getPost(id: string) {
 		const rows = await db
 			.selectFrom('posts')
 			.leftJoin('users', 'posts.user_id', 'users.id')
@@ -109,8 +109,8 @@ class PostService {
 			.map((row) => row.video)
 			.filter((video): video is string => video !== null);
 
-		const repliesMap = new Map<number, ReplyType>();
-		const nestedReplyIds = new Set<number>();
+		const repliesMap = new Map<string, ReplyType>();
+		const nestedReplyIds = new Set<string>();
 
 		// First, collect all IDs marked as nested replies to avoid duplicating them as top-level replies
 		rows.forEach((row) => {
@@ -199,7 +199,7 @@ class PostService {
 		videos?: string[]; // Optional
 	}) {
 		return await db.transaction().execute(async (trx: Transaction<Database>) => {
-			let coordinatesId: number | null = null;
+			let coordinatesId: string | null = null;
 
 			// If coordinates are provided, handle them
 			if (data.coordinates) {
@@ -251,7 +251,7 @@ class PostService {
 		});
 	}
 
-	async deletePost(id: number, user_id: number) {
+	async deletePost(id: string, user_id: string) {
 		return await db.transaction().execute(async (trx: Transaction<Database>) => {
 			// Check if the post exists and the user is the author
 			const post = await trx

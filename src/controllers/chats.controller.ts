@@ -7,10 +7,10 @@ import { MismatchTypeError } from '../utils/errors/TypeError.ts';
 class ChatController {
 	async createPrivateChat(req: Request, res: Response) {
 		try {
-			const user1 = Number(req.user);
+			const user1 = req.user;
 			const { user } = req.body;
 
-			verifyTypes([{ value: [user, user1], type: 'number' }]);
+			verifyTypes([{ value: [user, user1], type: 'uuid' }]);
 
 			const chatId = await chatService.createPrivateChat(user1, user);
 
@@ -27,18 +27,19 @@ class ChatController {
 
 	async insertMessage(req: Request, res: Response) {
 		try {
-			const userId = Number(req.user);
-			const { chatId, content, contentType } = req.body;
+			const userId = req.user;
+			const { chatId, content } = req.body;
+			const contentType: 1 | 2 | 3 = [1, 2, 3].includes(Number(req.body.contentType))
+				? (Number(req.body.contentType) as 1 | 2 | 3)
+				: (() => {
+					throw new MismatchTypeError('contentType solo puede ser 1 | 2 | 3');
+				})();
 
 			verifyTypes([
-				{ value: [chatId, contentType, userId], type: 'number' },
+				{ value: [chatId, userId], type: 'uuid' },
+				{ value: contentType, type: 'number' },
 				{ value: content, type: 'string' },
 			]);
-
-			// 1: Texto, 2: Imagen, 3: Video
-			if (0 > contentType || contentType > 3) {
-				throw new MismatchTypeError('contentType solo puede ser 1 | 2 | 3');
-			}
 
 			const message = await chatService.insertMessage(chatId, userId, content, contentType);
 
@@ -53,7 +54,9 @@ class ChatController {
 
 	async getChats(req: Request, res: Response) {
 		try {
-			const userId = Number(req.user);
+			const userId = req.user;
+
+			verifyTypes({ value: userId, type: 'uuid' });
 
 			const chats = await chatService.getChats(userId);
 
@@ -68,20 +71,17 @@ class ChatController {
 
 	async getChatMessages(req: Request, res: Response) {
 		try {
-			const chatId = Number(req.params.chatId);
+			const chatId = req.params.chatId;
 			let page = Number(req.query.page as string);
 
-			verifyTypes([
-				{ value: chatId, type: 'number' },
-				{
-					value: page,
-					type: 'number',
-					optional: true,
-				},
-			]);
-			if (isNaN(page)) {
+			if (isNaN(page) || page < 1) {
 				page = 1;
 			}
+
+			verifyTypes([
+				{ value: chatId, type: 'uuid' },
+				{ value: page, type: 'number', optional: true },
+			]);
 
 			const messages = await chatService.getChatMessages(chatId, page);
 

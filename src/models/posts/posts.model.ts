@@ -1,10 +1,10 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface PostsTable {
-	id: Generated<number>;
-	user_id: number;
-	coordinates_id: number | null;
-	category_id: number;
+	id: Generated<string>;
+	user_id: string;
+	coordinates_id: string | null;
+	category_id: string;
 	caption: string;
 	content: string;
 	post_date: Generated<Date>;

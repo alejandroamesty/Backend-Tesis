@@ -11,6 +11,6 @@ userRouter
 	.get('/email/:email', userController.getByEmail)
 	.get('/username/:username', userController.getByUsername)
 	.put('/:id', userAuth, userController.update)
-	.delete('/:id', userAuth, userController.delete);
+	.delete('/', userAuth, userController.delete);
 
 export default userRouter;

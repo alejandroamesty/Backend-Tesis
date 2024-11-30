@@ -2,7 +2,7 @@ import db from '../app/db.ts';
 import { ForbiddenError } from '../utils/errors/httpErrors.ts';
 
 class EventsService {
-	async getAll(community_id: number, user_id: number) {
+	async getAll(community_id: string, user_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			const [community] = await trx
 				.selectFrom('communities')
@@ -49,7 +49,7 @@ class EventsService {
 		});
 	}
 
-	async createEvent(user_id: number, community_id: number, event: {
+	async createEvent(user_id: string, community_id: string, event: {
 		name: string;
 		description?: string;
 		location: { x: number; y: number };
@@ -102,7 +102,7 @@ class EventsService {
 		});
 	}
 
-	cancelEvent(user_id: number, event_id: number) {
+	cancelEvent(user_id: string, event_id: string) {
 		return db.transaction().execute(async (trx) => {
 			const [event] = await trx
 				.selectFrom('events as e')
@@ -132,7 +132,7 @@ class EventsService {
 		});
 	}
 
-	updateEvent(user_id: number, event_id: number, event: {
+	updateEvent(user_id: string, event_id: string, event: {
 		name?: string;
 		description?: string;
 		location?: { x: number; y: number };

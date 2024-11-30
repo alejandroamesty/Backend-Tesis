@@ -22,7 +22,7 @@ class UserService {
 			.execute();
 	}
 
-	async getUserById(id: number) {
+	async getUserById(id: string) {
 		const user = await db
 			.selectFrom('users')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
@@ -104,7 +104,7 @@ class UserService {
 	}
 
 	async updateUser(
-		id: number,
+		id: string,
 		data: Partial<{
 			username: string;
 			image?: string;
@@ -120,11 +120,26 @@ class UserService {
 		return await db.updateTable('users').set(data).where('id', '=', id).execute();
 	}
 
-	async deleteUser(id: number) {
-		return await db.deleteFrom('users').where('id', '=', id).execute();
+	async deleteUser(id: string) {
+		console.log(id);
+		return await db.updateTable('users').set({ deleted_at: new Date() })
+			.where('id', '=', id)
+			.where('deleted_at', '=', null)
+			.returning([
+				'id',
+				'fname',
+				'lname',
+				'username',
+				'email',
+				'biography',
+				'address',
+				'birth_date',
+				'image',
+			])
+			.executeTakeFirstOrThrow();
 	}
 
-	async getUserPosts(userId: number, page = 1) {
+	async getUserPosts(userId: string, page = 1) {
 		const limit = 10;
 		const offset = (page - 1) * limit;
 

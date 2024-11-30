@@ -1,7 +1,7 @@
 import db from '../app/db.ts';
 
 class FollowService {
-	async getFollowers(userId: number) {
+	async getFollowers(userId: string) {
 		const rows = await db
 			.selectFrom('user_followers')
 			.leftJoin('users', 'user_followers.user_follower', 'users.id')
@@ -21,7 +21,7 @@ class FollowService {
 		return rows;
 	}
 
-	async followUser(userId: number, followerId: number) {
+	async followUser(userId: string, followerId: string) {
 		const result = await db
 			.insertInto('user_followers')
 			.values({
@@ -34,7 +34,7 @@ class FollowService {
 		return result;
 	}
 
-	async unfollowUser(userId: number, followerId: number) {
+	async unfollowUser(userId: string, followerId: string) {
 		const result = await db
 			.deleteFrom('user_followers')
 			.where('user_id', '=', userId)

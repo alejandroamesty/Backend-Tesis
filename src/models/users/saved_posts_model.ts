@@ -1,8 +1,8 @@
 import { Insertable, Selectable, Updateable } from 'kysely';
 
 export interface SavedPostsTable {
-	user_id: number;
-	post_id: number;
+	user_id: string;
+	post_id: string;
 }
 
 export type SavedPost = Selectable<SavedPostsTable>;

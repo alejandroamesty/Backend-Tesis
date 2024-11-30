@@ -12,7 +12,7 @@ type UpdateData = RequireAtLeastOne<
 >;
 
 class CommunitiesService {
-	async getAll(user_id: number) {
+	async getAll(user_id: string) {
 		return await db
 			.selectFrom('communities')
 			.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
@@ -46,7 +46,7 @@ class CommunitiesService {
 			.execute();
 	}
 
-	async getById(id: number, user_id: number) {
+	async getById(id: string, user_id: string) {
 		const result = await db
 			.selectFrom('communities')
 			.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
@@ -84,8 +84,8 @@ class CommunitiesService {
 	}
 
 	async create(data: {
-		user_id: number;
-		members: number[];
+		user_id: string;
+		members: string[];
 		image: string | null;
 		name: string;
 		description: string | null;
@@ -134,7 +134,7 @@ class CommunitiesService {
 		});
 	}
 
-	async delete(id: number, user_id: number) {
+	async delete(id: string, user_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			// Check if the user is the owner of the community
 			const [community] = await trx
@@ -153,7 +153,7 @@ class CommunitiesService {
 		});
 	}
 
-	async update(id: number, user_id: number, data: UpdateData) {
+	async update(id: string, user_id: string, data: UpdateData) {
 		return await db.transaction().execute(async (trx) => {
 			// Check if the user is the owner of the community
 			const [community] = await trx
@@ -176,7 +176,7 @@ class CommunitiesService {
 		});
 	}
 
-	async addMember(community_id: number, user_id: number, new_member_id: number) {
+	async addMember(community_id: string, user_id: string, new_member_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			// Check if the user is the owner of the community
 			const [community] = await trx
@@ -200,7 +200,7 @@ class CommunitiesService {
 		});
 	}
 
-	async removeMember(community_id: number, user_id: number, new_member_id: number) {
+	async removeMember(community_id: string, user_id: string, new_member_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			// Check if the user is the owner of the community
 			const [community] = await trx
@@ -225,7 +225,7 @@ class CommunitiesService {
 		});
 	}
 
-	async joinCommunity(community_id: number, user_id: number) {
+	async joinCommunity(community_id: string, user_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			// Check if the community is private
 			const [community] = await trx

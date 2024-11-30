@@ -1,6 +1,7 @@
 import { MismatchTypeError } from './errors/TypeError.ts';
 import {
 	BadRequestError,
+	ExpiredTokenError,
 	ForbiddenError,
 	NotFoundError,
 	UnauthorizedError,
@@ -37,8 +38,15 @@ export function handleError(error: unknown, res: Response) {
 			return res.status(404).json({ msg: 'Recurso no encontrado', data: error.message });
 		case error instanceof BadRequestError:
 			return res.status(400).json({ msg: 'Solicitud incorrecta', data: error.message });
+		case error instanceof ExpiredTokenError:
+			return res.status(401).json({ msg: 'Token expirado', data: error.message });
 		default:
 			console.error(error);
+			if (error instanceof Error) {
+				if (error.message === 'no result') {
+					return res.status(404).json({ msg: 'Recurso no encontrado' });
+				}
+			}
 			return res.status(500).json({ msg: 'Error interno del servidor' });
 	}
 }

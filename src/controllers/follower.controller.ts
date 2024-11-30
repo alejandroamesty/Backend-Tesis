@@ -2,15 +2,15 @@
 import { Request, Response } from 'express';
 import followService from '../services/follow.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
-import { BadRequestError } from '../utils/errors/httpErrors.ts';
+import { BadRequestError, ForbiddenError } from '../utils/errors/httpErrors.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
 
 class FollowerController {
 	async getUserFollowers(req: Request, res: Response) {
 		try {
-			const userId = Number(req.params.userId);
+			const userId = req.params.userId;
 
-			verifyTypes({ value: userId, type: 'number' });
+			verifyTypes({ value: userId, type: 'uuid' });
 
 			const followers = await followService.getFollowers(userId);
 
@@ -28,13 +28,17 @@ class FollowerController {
 
 	async followUser(req: Request, res: Response) {
 		try {
-			const follow = Number(req.body.follow);
-			const userId = Number(req.user);
+			const follow = req.body.follow;
+			const userId = req.user;
 
-			verifyTypes({ value: [follow, userId], type: 'number' });
+			verifyTypes({ value: [follow, userId], type: 'uuid' });
 
 			if (follow === userId) {
-				throw new BadRequestError('You cannot follow yourself');
+				throw new BadRequestError('No te puedes seguir a ti mismo');
+			}
+
+			if (!userId) {
+				throw new ForbiddenError('Debes estar logueado para seguir a un usuario');
 			}
 
 			const result = await followService.followUser(follow, userId);
@@ -50,10 +54,14 @@ class FollowerController {
 
 	async unfollowUser(req: Request, res: Response) {
 		try {
-			const follow = Number(req.body.follow);
-			const userId = Number(req.user);
+			const follow = req.body.follow;
+			const userId = req.user;
 
-			verifyTypes({ value: [follow, userId], type: 'number' });
+			verifyTypes({ value: [follow, userId], type: 'uuid' });
+
+			if (!userId) {
+				throw new ForbiddenError('Debes estar logueado para dejar de seguir a un usuario');
+			}
 
 			const result = await followService.unfollowUser(follow, userId);
 

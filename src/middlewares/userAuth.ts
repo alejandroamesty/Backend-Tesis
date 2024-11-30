@@ -1,6 +1,7 @@
 // @deno-types="@types/express"
 import { NextFunction, Request, Response } from 'express';
 import { verifyToken } from '../utils/JWTComponent.ts';
+import { handleError } from '../utils/errorHandler.ts';
 
 export async function userAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
@@ -16,8 +17,8 @@ export async function userAuth(req: Request, res: Response, next: NextFunction):
 		}
 		req.user = payload.id as string;
 		next();
-	} catch (_error) {
-		res.status(401).json({ message: 'Invalid token' });
+	} catch (error) {
+		handleError(error, res);
 		return;
 	}
 }

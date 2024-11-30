@@ -7,9 +7,9 @@ import { BadRequestError } from '../utils/errors/httpErrors.ts';
 class EventsController {
 	async getAll(req: Request, res: Response) {
 		try {
-			const id = Number(req.params.id);
-			const user_id = Number(req.user);
-			verifyTypes({ value: [id, user_id], type: 'number' });
+			const id = req.params.id;
+			const user_id = req.user;
+			verifyTypes({ value: [id, user_id], type: 'uuid' });
 
 			const events = await eventsService.getAll(id, user_id);
 
@@ -43,17 +43,15 @@ class EventsController {
 
 	async createEvent(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const community_id = Number(req.params.id);
+			const user_id = req.user;
+			const community_id = req.params.id;
 
 			const { name, description, event_date, event_location } = req.body;
 
 			verifyTypes([
 				{ value: [name, description, event_date], type: 'string' },
-				{
-					value: [event_location?.x, event_location?.y, community_id, user_id],
-					type: 'number',
-				},
+				{ value: [user_id, community_id], type: 'uuid' },
+				{ value: [event_location?.x, event_location?.y], type: 'number' },
 			]);
 
 			const now = new Date();
@@ -79,10 +77,10 @@ class EventsController {
 
 	async cancelEvent(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const event_id = Number(req.params.id);
+			const user_id = req.user;
+			const event_id = req.params.id;
 
-			verifyTypes({ value: [user_id, event_id], type: 'number' });
+			verifyTypes({ value: [user_id, event_id], type: 'uuid' });
 
 			await eventsService.cancelEvent(user_id, event_id);
 			res.json({
@@ -95,13 +93,13 @@ class EventsController {
 
 	async updateEvent(req: Request, res: Response) {
 		try {
-			const user_id = Number(req.user);
-			const event_id = Number(req.params.id);
+			const user_id = req.user;
+			const event_id = req.params.id;
 			const { name, description, event_date, event_location } = req.body;
 
 			verifyTypes([
 				{ value: [name, description, event_date], type: 'string', optional: true },
-				{ value: [user_id, event_id], type: 'number' },
+				{ value: [user_id, event_id], type: 'uuid' },
 				{ value: [event_location?.x, event_location?.y], type: 'number', optional: true },
 			]);
 

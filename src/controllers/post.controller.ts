@@ -9,8 +9,8 @@ import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 class PostController {
 	async getPost(req: Request, res: Response) {
 		try {
-			const id = Number(req.params.id);
-			verifyTypes({ value: id, type: 'number' });
+			const id = req.params.id;
+			verifyTypes({ value: id, type: 'uuid' });
 			const post = await postService.getPost(id);
 			if (!post) throw new NotFoundError('Post no encontrado');
 
@@ -30,7 +30,7 @@ class PostController {
 			const { caption, category_id, coordinates, content, videos, images } = req.body;
 			const x = coordinates?.x || undefined;
 			const y = coordinates?.y || undefined;
-			const user_id = Number(req.user);
+			const user_id = req.user;
 
 			if (!user_id) {
 				throw new UnauthorizedError('Usuario no encontrado');
@@ -38,7 +38,7 @@ class PostController {
 
 			verifyTypes([
 				{ value: [caption, content], type: 'string' },
-				{ value: category_id, type: 'number' },
+				{ value: category_id, type: 'uuid' },
 				{ value: [x, y], type: 'number', optional: true },
 				{ value: videos, type: 'video', optional: true },
 				{ value: images, type: 'image', optional: true },
@@ -48,7 +48,7 @@ class PostController {
 				post_data: {
 					caption: caption as string,
 					user_id: user_id,
-					category_id: category_id as number,
+					category_id: category_id as string,
 					content: content as string,
 				},
 				coordinates: (coordinates as { x: number; y: number }) ?? undefined,
@@ -67,14 +67,14 @@ class PostController {
 
 	async deletePost(req: Request, res: Response) {
 		try {
-			const id = Number(req.params.id);
-			const user_id = Number(req.user);
+			const id = req.params.id;
+			const user_id = req.user;
 
 			if (!user_id) {
 				throw new UnauthorizedError('Usuario no encontrado');
 			}
 
-			verifyTypes({ value: [id, user_id], type: 'number' });
+			verifyTypes({ value: [id, user_id], type: 'uuid' });
 
 			const post = await postService.deletePost(id, user_id);
 

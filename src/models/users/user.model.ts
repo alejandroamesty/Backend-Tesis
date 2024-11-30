@@ -1,7 +1,7 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface UserTable {
-	id: Generated<number>;
+	id: Generated<string>;
 	username: string;
 	image: string | null;
 	fname: string;
@@ -11,6 +11,7 @@ export interface UserTable {
 	password: string;
 	address: string | null;
 	birth_date: Date | null;
+	deleted_at: Date | null;
 }
 
 export type User = Selectable<UserTable>;

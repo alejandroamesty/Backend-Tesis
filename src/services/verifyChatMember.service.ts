@@ -1,7 +1,7 @@
 import db from '../app/db.ts';
 import { ForbiddenError } from '../utils/errors/httpErrors.ts';
 
-export default async function verifyChatMember(userId: number, chatId: number) {
+export default async function verifyChatMember(userId: string, chatId: string) {
 	const isMember = await db
 		.selectFrom('chat_members')
 		.where('chat_id', '=', chatId)

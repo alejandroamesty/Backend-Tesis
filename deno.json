@@ -1,7 +1,8 @@
 {
 	"tasks": {
 		"start": "deno run -A --env-file server.ts",
-		"dev": "deno run -A --watch --env-file server.ts"
+		"dev": "deno run -A --watch --env-file server.ts",
+		"migrate": "deno run -A --env-file src/migrations/migrations.ts"
 	},
 
 	"imports": {

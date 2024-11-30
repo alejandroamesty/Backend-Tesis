@@ -1,9 +1,9 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface EventsTable {
-	id: Generated<number>;
-	community_id: number;
-	event_location: number;
+	id: Generated<string>;
+	community_id: string;
+	event_location: string;
 	name: string;
 	description: string | null;
 	event_date: Date;

@@ -2,7 +2,7 @@ import { sql } from 'kysely';
 import db from '../app/db.ts';
 
 class ChatService {
-	async createPrivateChat(user1: number, user2: number) {
+	async createPrivateChat(user1: string, user2: string) {
 		return await db.transaction().execute(async (trx) => {
 			// Insert the new chat
 			const [chat] = await trx
@@ -29,7 +29,7 @@ class ChatService {
 	}
 
 	// contentType: 1 = text, 2 = image, 3 = video
-	async insertMessage(chatId: number, userId: number, content: string, contentType: 1 | 2 | 3) {
+	async insertMessage(chatId: string, userId: string, content: string, contentType: 1 | 2 | 3) {
 		return await db
 			.insertInto('chat_messages')
 			.values({
@@ -42,7 +42,7 @@ class ChatService {
 			.executeTakeFirstOrThrow();
 	}
 
-	async getChatMessages(chatId: number, page: number = 1, pageSize: number = 15) {
+	async getChatMessages(chatId: string, page: number = 1, pageSize: number = 15) {
 		const offset = (page - 1) * pageSize;
 
 		const messages = await db
@@ -81,7 +81,7 @@ class ChatService {
 		}));
 	}
 
-	async getChats(userId: number) {
+	async getChats(userId: string) {
 		// Step 1: Fetch chats
 		const chats = await db
 			.selectFrom('chat_members')
@@ -121,7 +121,7 @@ class ChatService {
 			(acc, member) => {
 				if (!acc[member.chatId]) acc[member.chatId] = [];
 				acc[member.chatId].push({
-					userId: member.userId || 0,
+					userId: member.userId || '',
 					fname: member.fname || '',
 					lname: member.lname || '',
 					image: member.image,
@@ -129,16 +129,16 @@ class ChatService {
 				return acc;
 			},
 			{} as Record<
-				number,
-				Array<{ userId: number; fname: string; lname: string; image: string | null }>
+				string,
+				Array<{ userId: string; fname: string; lname: string; image: string | null }>
 			>,
 		);
 
 		// Step 4: Merge chats with their members
 		return chats.map((chat) => ({
 			...chat,
-			members_nu: membersByChatId[chat.chatId || 0]?.length || 0,
-			members: membersByChatId[chat.chatId || 0] || [],
+			members_nu: membersByChatId[chat.chatId || '']?.length || 0,
+			members: membersByChatId[chat.chatId || ''] || [],
 		}));
 	}
 }

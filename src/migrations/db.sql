@@ -1,37 +1,96 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
-CREATE SEQUENCE "public".chat_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE SEQUENCE "public".chat_member_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.update_likes_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    -- For an INSERT on post_likes, increase the likes count
+    IF TG_OP = 'INSERT' THEN
+        UPDATE posts SET likes = likes + 1 WHERE id = NEW.post_id;
+    -- For a DELETE on post_likes, decrease the likes count
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE posts SET likes = likes - 1 WHERE id = OLD.post_id;
+    END IF;
+    RETURN NULL;
+END;
+$function$
+;
 
-CREATE SEQUENCE "public".chat_message_chat_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE SEQUENCE "public".chat_message_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_generate_v1()
+ RETURNS uuid
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_generate_v1$function$
+;
 
-CREATE SEQUENCE "public".communities_id_seq AS integer START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_generate_v1mc()
+ RETURNS uuid
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_generate_v1mc$function$
+;
 
-CREATE SEQUENCE "public".coordinates_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_generate_v3(namespace uuid, name text)
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_generate_v3$function$
+;
 
-CREATE SEQUENCE "public".events_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_generate_v4()
+ RETURNS uuid
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_generate_v4$function$
+;
 
-CREATE SEQUENCE "public".post_category_id_seq AS integer START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_generate_v5(namespace uuid, name text)
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_generate_v5$function$
+;
 
-CREATE SEQUENCE "public".post_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_nil()
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_nil$function$
+;
 
-CREATE SEQUENCE "public".post_images_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_ns_dns()
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_ns_dns$function$
+;
 
-CREATE SEQUENCE "public".post_replies_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_ns_oid()
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_ns_oid$function$
+;
 
-CREATE SEQUENCE "public".post_videos_id_seq START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_ns_url()
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_ns_url$function$
+;
 
-CREATE SEQUENCE "public".saved_posts_post_id_seq START WITH 1 INCREMENT BY 1;
-
-CREATE SEQUENCE "public".saved_posts_user_id_seq START WITH 1 INCREMENT BY 1;
-
-CREATE SEQUENCE "public".users_id_seq AS integer START WITH 1 INCREMENT BY 1;
+CREATE OR REPLACE FUNCTION public.uuid_ns_x500()
+ RETURNS uuid
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/uuid-ossp', $function$uuid_ns_x500$function$
+;
 
 CREATE  TABLE "public".chats ( 
-	id                   bigint DEFAULT nextval('chat_id_seq'::regclass) NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
 	description          text    ,
 	created_at           timestamp DEFAULT CURRENT_TIMESTAMP   ,
 	private_chat         boolean DEFAULT true   ,
@@ -39,20 +98,20 @@ CREATE  TABLE "public".chats (
  );
 
 CREATE  TABLE "public".coordinates ( 
-	id                   bigserial  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
 	x                    double precision DEFAULT 0   ,
 	y                    double precision DEFAULT 0   ,
 	CONSTRAINT pk_coordinates PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".post_categories ( 
-	id                   integer DEFAULT nextval('post_category_id_seq'::regclass) NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
 	name                 text  NOT NULL  ,
 	CONSTRAINT pk_post_category PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".users ( 
-	id                   serial  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
 	username             text  NOT NULL  ,
 	image                text    ,
 	fname                text  NOT NULL  ,
@@ -62,6 +121,7 @@ CREATE  TABLE "public".users (
 	"password"           text  NOT NULL  ,
 	address              text    ,
 	birth_date           timestamp(3)    ,
+	deleted_at           timestamp(3)    ,
 	CONSTRAINT users_pkey PRIMARY KEY ( id )
  );
 
@@ -70,17 +130,17 @@ CREATE UNIQUE INDEX users_username_key ON "public".users ( username );
 CREATE UNIQUE INDEX users_email_key ON "public".users ( email );
 
 CREATE  TABLE "public".chat_members ( 
-	id                   bigint DEFAULT nextval('chat_member_id_seq'::regclass) NOT NULL  ,
-	user_id              bigint  NOT NULL  ,
-	chat_id              bigint  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	chat_id              uuid  NOT NULL  ,
 	CONSTRAINT pk_chat_member PRIMARY KEY ( id ),
 	CONSTRAINT unq_chat_member UNIQUE ( user_id, chat_id ) 
  );
 
 CREATE  TABLE "public".chat_messages ( 
-	id                   bigint DEFAULT nextval('chat_message_id_seq'::regclass) NOT NULL  ,
-	user_id              bigint  NOT NULL  ,
-	chat_id              bigint DEFAULT nextval('chat_message_chat_id_seq'::regclass) NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	chat_id              uuid NOT NULL  ,
 	content_type         integer DEFAULT 1   ,
 	content              text  NOT NULL  ,
 	created_at           timestamp DEFAULT CURRENT_TIMESTAMP   ,
@@ -88,9 +148,9 @@ CREATE  TABLE "public".chat_messages (
  );
 
 CREATE  TABLE "public".communities ( 
-	id                   serial  NOT NULL  ,
-	owner_id             bigint  NOT NULL  ,
-	chat_id              bigint  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
+	owner_id             uuid  NOT NULL  ,
+	chat_id              uuid  NOT NULL  ,
 	image                text    ,
 	name                 text  NOT NULL  ,
 	description          text    ,
@@ -99,20 +159,21 @@ CREATE  TABLE "public".communities (
  );
 
 CREATE  TABLE "public".events ( 
-	id                   bigserial  NOT NULL  ,
-	community_id         bigint  NOT NULL  ,
-	event_location       bigint    ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
+	community_id         uuid  NOT NULL  ,
+	event_location       uuid    ,
 	name                 text  NOT NULL  ,
 	description          text    ,
 	event_date           timestamp    ,
+	cancelled			boolean DEFAULT false   ,
 	CONSTRAINT pk_events PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".posts ( 
-	id                   bigint DEFAULT nextval('post_id_seq'::regclass) NOT NULL  ,
-	user_id              integer  NOT NULL  ,
-	coordinates_id       bigint    ,
-	category_id          integer  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	coordinates_id       uuid    ,
+	category_id          uuid  NOT NULL  ,
 	caption              text    ,
 	post_date            timestamp DEFAULT CURRENT_TIMESTAMP   ,
 	likes                integer DEFAULT 0   ,
@@ -121,44 +182,44 @@ CREATE  TABLE "public".posts (
  );
 
 CREATE  TABLE "public".saved_posts ( 
-	user_id              bigserial  NOT NULL  ,
-	post_id              bigserial  NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	post_id              uuid  NOT NULL  ,
 	CONSTRAINT pk_saved_posts PRIMARY KEY ( user_id, post_id )
  );
 
 CREATE  TABLE "public".user_followers ( 
-	user_id              bigint  NOT NULL  ,
-	user_follower        bigint  NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	user_follower        uuid  NOT NULL  ,
 	CONSTRAINT pk_user_follower PRIMARY KEY ( user_id, user_follower )
  );
 
 CREATE  TABLE "public".post_images ( 
-	post_id              integer  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
+	post_id              uuid  NOT NULL  ,
 	image                text  NOT NULL  ,
-	id                   bigserial  NOT NULL  ,
 	CONSTRAINT pk_post_images PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".post_likes ( 
-	post_id              integer  NOT NULL  ,
-	user_id              integer  NOT NULL  ,
+	post_id              uuid  NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
 	CONSTRAINT pk_post_likes PRIMARY KEY ( post_id, user_id )
  );
 
 CREATE  TABLE "public".post_replies ( 
-	id                   bigserial  NOT NULL  ,
-	post_id              integer  NOT NULL  ,
-	user_id              integer  NOT NULL  ,
-	parent_reply_id      integer    ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
+	post_id              uuid  NOT NULL  ,
+	user_id              uuid  NOT NULL  ,
+	parent_reply_id      uuid    ,
 	content              text  NOT NULL  ,
 	created_at           timestamp DEFAULT CURRENT_TIMESTAMP   ,
 	CONSTRAINT pk_post_replies PRIMARY KEY ( id )
  );
 
 CREATE  TABLE "public".post_videos ( 
-	post_id              integer  NOT NULL  ,
+	id                   uuid DEFAULT uuid_generate_v4()  NOT NULL  ,
+	post_id              uuid  NOT NULL  ,
 	video                text  NOT NULL  ,
-	id                   bigserial  NOT NULL  ,
 	CONSTRAINT pk_post_videos PRIMARY KEY ( id )
  );
 
@@ -207,20 +268,3 @@ ALTER TABLE "public".user_followers ADD CONSTRAINT fk_user_follower_users_muser 
 ALTER TABLE "public".user_followers ADD CONSTRAINT fk_user_follower_users_fuser FOREIGN KEY ( user_follower ) REFERENCES "public".users( id ) ON DELETE CASCADE ON UPDATE CASCADE;
 
 CREATE TRIGGER adjust_likes_count AFTER INSERT OR DELETE ON public.post_likes FOR EACH ROW EXECUTE FUNCTION update_likes_count();
-
-CREATE OR REPLACE FUNCTION public.update_likes_count()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-    -- For an INSERT on post_likes, increase the likes count
-    IF TG_OP = 'INSERT' THEN
-        UPDATE posts SET likes = likes + 1 WHERE id = NEW.post_id;
-    -- For a DELETE on post_likes, decrease the likes count
-    ELSIF TG_OP = 'DELETE' THEN
-        UPDATE posts SET likes = likes - 1 WHERE id = OLD.post_id;
-    END IF;
-    RETURN NULL;
-END;
-$function$
-;

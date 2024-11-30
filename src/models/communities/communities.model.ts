@@ -1,9 +1,9 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface CommunitiesTable {
-	id: Generated<number>;
-	owner_id: number;
-	chat_id: number;
+	id: Generated<string>;
+	owner_id: string;
+	chat_id: string;
 	private_community: boolean;
 	name: string;
 	image: string | null;

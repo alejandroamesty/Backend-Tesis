@@ -1,4 +1,5 @@
 import { create, getNumericDate, verify } from 'https://deno.land/x/djwt/mod.ts';
+import { ExpiredTokenError } from './errors/httpErrors.ts';
 
 // Create a CryptoKey from a string secret
 const jwtSecret = await crypto.subtle.importKey(
@@ -35,6 +36,9 @@ export async function verifyToken(token: string): Promise<Record<string, unknown
 		const payload = await verify(token, jwtSecret);
 		return payload as Record<string, unknown>;
 	} catch (err) {
+		if (err instanceof Error && err.message === 'The jwt is expired.') {
+			throw new ExpiredTokenError(err.message);
+		}
 		console.error('Invalid token:', err);
 		return null;
 	}

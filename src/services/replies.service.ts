@@ -3,10 +3,10 @@ import { NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class RepliesService {
 	async postReply(
-		postId: number,
-		userId: number,
+		postId: string,
+		userId: string,
 		content: string,
-		parentReplyId?: number,
+		parentReplyId?: string,
 	) {
 		// If parentReplyId is provided, check if it belongs to the same post
 		if (parentReplyId) {
@@ -37,7 +37,7 @@ class RepliesService {
 			.execute();
 	}
 
-	async deleteReply(replyId: number, userId: number) {
+	async deleteReply(replyId: string, userId: string) {
 		return await db
 			.deleteFrom('post_replies')
 			.where('id', '=', replyId)

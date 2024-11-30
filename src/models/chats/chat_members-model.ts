@@ -1,9 +1,9 @@
 import { Generated, Insertable, Selectable, Updateable } from 'kysely';
 
 export interface ChatMemberTable {
-	id: Generated<number>;
-	chat_id: number;
-	user_id: number;
+	id: Generated<string>;
+	chat_id: string;
+	user_id: string;
 }
 
 export type ChatMember = Selectable<ChatMemberTable>;

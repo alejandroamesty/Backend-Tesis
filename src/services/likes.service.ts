@@ -1,7 +1,7 @@
 import db from '../app/db.ts';
 
 class LikeService {
-	async likePost(postId: number, userId: number) {
+	async likePost(postId: string, userId: string) {
 		const result = await db
 			.insertInto('post_likes')
 			.values({
@@ -26,7 +26,7 @@ class LikeService {
 		};
 	}
 
-	async unlikePost(postId: number, userId: number) {
+	async unlikePost(postId: string, userId: string) {
 		const result = await db
 			.deleteFrom('post_likes')
 			.where('post_likes.post_id', '=', postId)
@@ -49,7 +49,7 @@ class LikeService {
 		};
 	}
 
-	async getPostLikes(postId: number) {
+	async getPostLikes(postId: string) {
 		const likesData = await db
 			.selectFrom('post_likes')
 			.leftJoin('users', 'users.id', 'post_likes.user_id')
