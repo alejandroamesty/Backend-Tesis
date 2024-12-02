@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { verifyToken } from '../utils/JWTComponent.ts';
 import { handleError } from '../utils/errorHandler.ts';
+import userService from '../services/user.service.ts';
 
 export async function userAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
@@ -11,10 +12,17 @@ export async function userAuth(req: Request, res: Response, next: NextFunction):
 			return;
 		}
 		const payload = await verifyToken(token);
+
 		if (!payload) {
 			res.status(401).json({ message: 'Invalid token' });
 			return;
 		}
+
+		const user = await userService.getUserById(payload.id as string);
+		if (!user) {
+			res.status(401).json({ message: 'Invalid token' });
+		}
+
 		req.user = payload.id as string;
 		next();
 	} catch (error) {

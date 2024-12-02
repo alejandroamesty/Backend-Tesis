@@ -27,6 +27,7 @@ class UserService {
 			.selectFrom('users')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.id', '=', id)
+			.where('deleted_at', 'is', null)
 			.select([
 				'users.id',
 				'users.fname',
