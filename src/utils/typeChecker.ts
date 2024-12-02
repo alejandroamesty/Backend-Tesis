@@ -58,7 +58,7 @@ function checkType(value: unknown, type: string, optional?: boolean) {
 		return;
 	}
 
-	if (!value) {
+	if (!value && (value !== false && value !== 0)) {
 		throw new MismatchTypeError('Expected a value but got undefined or NaN');
 	}
 

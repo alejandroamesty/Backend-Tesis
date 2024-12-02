@@ -9,6 +9,7 @@ import followerRouter from './app/followers.router.ts';
 import chatsRouter from './app/chats.router.ts';
 import communitiesRouter from './app/communities.router.ts';
 import eventsRouter from './app/events.router.ts';
+import searchRouter from './app/search.router.ts';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router
 	.use('/followers', followerRouter)
 	.use('/chats', chatsRouter)
 	.use('/communities', communitiesRouter)
-	.use('/events', eventsRouter);
+	.use('/events', eventsRouter)
+	.use('/search', searchRouter);
 
 export default router;

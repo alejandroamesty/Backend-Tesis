@@ -6,7 +6,7 @@ NOT FULLY IMPLEMENTED CONTENT
 
 **Requirements:**
 
-- Deno: deno 2.1.1
+- Deno: deno 2.1.2
 - Recommended: Deno extension in vscode:
   https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno&ssr=false#review-details
   or install using command palette (Ctrl + P) and paste:
@@ -18,6 +18,13 @@ NOT FULLY IMPLEMENTED CONTENT
 
 ```bash
 deno install
+```
+
+**Configuring** This backend server comes with its own database and seeders, to run them (make sure
+you have all env variables) run:
+
+```bash
+deno run migrate
 ```
 
 **Deploying**

@@ -125,7 +125,7 @@ CREATE  TABLE "public".users (
 	CONSTRAINT users_pkey PRIMARY KEY ( id )
  );
 
-CREATE UNIQUE INDEX users_username_key ON "public".users ( username );
+CREATE UNIQUE INDEX users_username_key ON "public".users ( username ) WHERE deleted_at IS NULL;
 
 CREATE UNIQUE INDEX users_email_key ON "public".users ( email ) WHERE deleted_at IS NULL;
 
