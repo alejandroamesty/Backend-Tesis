@@ -20,7 +20,7 @@ class UserService {
 			])
 			.groupBy('users.id') // Ensure grouping by user id to count followers
 			.execute();
-	}
+	} // for testing, delete later
 
 	async getUserById(id: string) {
 		const user = await db
@@ -117,14 +117,18 @@ class UserService {
 			birth_date?: Date;
 		}>,
 	) {
-		return await db.updateTable('users').set(data).where('id', '=', id).execute();
+		return await db.updateTable('users').set(data).where('id', '=', id).where(
+			'deleted_at',
+			'is',
+			null,
+		).execute();
 	}
 
 	async deleteUser(id: string) {
 		console.log(id);
 		return await db.updateTable('users').set({ deleted_at: new Date() })
 			.where('id', '=', id)
-			.where('deleted_at', '=', null)
+			.where('deleted_at', 'is', null)
 			.returning([
 				'id',
 				'fname',

@@ -33,7 +33,6 @@ class AuthController {
 				birth_date,
 			} = req.body as UserRequestBody;
 
-			console.log('verifying types');
 			verifyTypes([
 				{
 					value: [username, fname, lname],
@@ -53,7 +52,6 @@ class AuthController {
 					optional: true,
 				},
 			]);
-			console.log('types verified');
 
 			const userData = {
 				username: username,
@@ -67,7 +65,6 @@ class AuthController {
 				birth_date: birth_date || null,
 			};
 
-			console.log('registering user');
 			const user = await authService.register(userData);
 
 			return res.json({
@@ -117,6 +114,78 @@ class AuthController {
 						birth_date: user.birth_date,
 					},
 				},
+			});
+		} catch (error: unknown) {
+			handleError(error, res);
+		}
+	}
+
+	forgotPassword(req: Request, res: Response) {
+		try {
+			const { email } = req.body;
+
+			verifyTypes([
+				{
+					value: email,
+					type: 'email',
+				},
+			]);
+
+			authService.forgotPassword(email);
+
+			return res.json({
+				msg: 'Si su correo es valido, se le enviará un correo con las instrucciones para recuperar su contraseña',
+			});
+		} catch (error: unknown) {
+			handleError(error, res);
+		}
+	}
+
+	async resetPassword(req: Request, res: Response) {
+		try {
+			const { email, key, password } = req.body;
+
+			verifyTypes([
+				{
+					value: email,
+					type: 'email',
+				},
+				{
+					value: key,
+					type: 'number',
+				},
+				{
+					value: password,
+					type: 'password',
+				},
+			]);
+
+			await authService.resetPassword(email, key, password);
+
+			return res.json({
+				msg: 'Contraseña cambiada con exito',
+			});
+		} catch (error: unknown) {
+			handleError(error, res);
+		}
+	}
+
+	async deleteAccount(req: Request, res: Response) {
+		try {
+			const user = req.user;
+
+			if (!user) {
+				throw new ForbiddenError('No estas autorizado');
+			}
+
+			const password = req.body.password;
+
+			verifyTypes([{ value: user, type: 'uuid' }, { value: password, type: 'password' }]);
+
+			await authService.deleteAccount(user, password);
+
+			return res.json({
+				msg: 'Cuenta eliminada con exito',
 			});
 		} catch (error: unknown) {
 			handleError(error, res);

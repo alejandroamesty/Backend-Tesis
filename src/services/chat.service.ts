@@ -82,64 +82,68 @@ class ChatService {
 	}
 
 	async getChats(userId: string) {
-		// Step 1: Fetch chats
-		const chats = await db
-			.selectFrom('chat_members')
-			.where('chat_members.user_id', '=', userId)
-			.leftJoin('chats', 'chat_members.chat_id', 'chats.id')
-			.leftJoin('chat_members as other_members', (join) =>
-				join
-					.onRef('other_members.chat_id', '=', 'chats.id')
-					.on('other_members.user_id', '!=', userId))
-			.leftJoin('users', 'other_members.user_id', 'users.id') // Get details of the other user
-			.select([
-				'chats.id as chatId',
-				'chats.private_chat',
-				'chats.description',
-				sql`CASE WHEN chats.private_chat THEN users.image ELSE NULL END`.as('image'),
-			])
-			.execute();
+		// updated code using transactions
 
-		// Step 2: Fetch members for all chats
-		const chatIds = chats.map((chat) => chat.chatId);
+		return await db.transaction().execute(async (trx) => {
+			// step 1: fetch chats
+			const chats = await trx
+				.selectFrom('chat_members')
+				.where('chat_members.user_id', '=', userId)
+				.leftJoin('chats', 'chat_members.chat_id', 'chats.id')
+				.leftJoin('chat_members as other_members', (join) =>
+					join
+						.onRef('other_members.chat_id', '=', 'chats.id')
+						.on('other_members.user_id', '!=', userId))
+				.leftJoin('users', 'other_members.user_id', 'users.id') // Get details of the other user
+				.select([
+					'chats.id as chatId',
+					'chats.private_chat',
+					'chats.description',
+					sql`CASE WHEN chats.private_chat THEN users.image ELSE NULL END`.as('image'),
+				])
+				.execute();
 
-		const members = await db
-			.selectFrom('chat_members')
-			.where('chat_members.chat_id', 'in', chatIds)
-			.leftJoin('users', 'chat_members.user_id', 'users.id')
-			.select([
-				'chat_members.chat_id as chatId',
-				'users.id as userId',
-				'users.fname',
-				'users.lname',
-				'users.image',
-			])
-			.execute();
+			// step 2: fetch members for all chats
+			const chatIds = chats.map((chat) => chat.chatId);
 
-		// Step 3: Group members by chatId
-		const membersByChatId = members.reduce(
-			(acc, member) => {
-				if (!acc[member.chatId]) acc[member.chatId] = [];
-				acc[member.chatId].push({
-					userId: member.userId || '',
-					fname: member.fname || '',
-					lname: member.lname || '',
-					image: member.image,
-				});
-				return acc;
-			},
-			{} as Record<
-				string,
-				Array<{ userId: string; fname: string; lname: string; image: string | null }>
-			>,
-		);
+			const members = await trx
+				.selectFrom('chat_members')
+				.where('chat_members.chat_id', 'in', chatIds)
+				.leftJoin('users', 'chat_members.user_id', 'users.id')
+				.select([
+					'chat_members.chat_id as chatId',
+					'users.id as userId',
+					'users.fname',
+					'users.lname',
+					'users.image',
+				])
+				.execute();
 
-		// Step 4: Merge chats with their members
-		return chats.map((chat) => ({
-			...chat,
-			members_nu: membersByChatId[chat.chatId || '']?.length || 0,
-			members: membersByChatId[chat.chatId || ''] || [],
-		}));
+			// step 3: group members by chatId
+			const membersByChatId = members.reduce(
+				(acc, member) => {
+					if (!acc[member.chatId]) acc[member.chatId] = [];
+					acc[member.chatId].push({
+						userId: member.userId || '',
+						fname: member.fname || '',
+						lname: member.lname || '',
+						image: member.image,
+					});
+					return acc;
+				},
+				{} as Record<
+					string,
+					Array<{ userId: string; fname: string; lname: string; image: string | null }>
+				>,
+			);
+
+			// step 4: merge chats with their members
+			return chats.map((chat) => ({
+				...chat,
+				members_nu: membersByChatId[chat.chatId || '']?.length || 0,
+				members: membersByChatId[chat.chatId || ''] || [],
+			}));
+		});
 	}
 }
 export default new ChatService();

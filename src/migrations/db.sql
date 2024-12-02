@@ -127,7 +127,7 @@ CREATE  TABLE "public".users (
 
 CREATE UNIQUE INDEX users_username_key ON "public".users ( username );
 
-CREATE UNIQUE INDEX users_email_key ON "public".users ( email );
+CREATE UNIQUE INDEX users_email_key ON "public".users ( email ) WHERE deleted_at IS NULL;
 
 CREATE  TABLE "public".chat_members ( 
 	id                   uuid DEFAULT uuid_generate_v4() NOT NULL  ,
