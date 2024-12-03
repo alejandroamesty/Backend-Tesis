@@ -1,5 +1,6 @@
 import type { Transaction } from 'kysely';
 import db from '../app/db.ts';
+import { sql } from 'kysely';
 import type { PostsTable } from '../models/posts/posts.model.ts';
 import type { Database } from '../models/database.model.ts';
 import { NotFoundError, UnauthorizedError } from '../utils/errors/httpErrors.ts';
@@ -25,6 +26,114 @@ interface ReplyType {
 }
 
 class PostService {
+	private mergePosts(
+		followedPosts: Array<{
+			id: string;
+			caption: string;
+			content: string;
+			post_date: Date;
+			likes: number;
+			username: string;
+			userId: string;
+		}>,
+		popularPosts: Array<{
+			id: string;
+			caption: string;
+			content: string;
+			post_date: Date;
+			likes: number;
+			username: string;
+			userId: string;
+			replies_count: number;
+			engagement_score: number;
+		}>,
+		limit: number,
+	) {
+		const merged = [];
+		let i = 0, j = 0;
+
+		while (merged.length < limit && (i < followedPosts.length || j < popularPosts.length)) {
+			// Followed users' posts (60% of feed)
+			if (merged.length % 5 < 3 && i < followedPosts.length) {
+				merged.push(followedPosts[i++]);
+			} // Popular posts (40% of feed)
+			else if (j < popularPosts.length) {
+				merged.push(popularPosts[j++]);
+			}
+		}
+
+		return merged;
+	}
+
+	async getPosts(userId: string, page: number = 1, limit: number = 10) {
+		const offset = (page - 1) * limit;
+		const bufferSize = Math.ceil(limit * 0.4);
+
+		return await db.transaction().execute(async (trx) => {
+			// Fetch posts from followed users
+			const followedPosts = await trx
+				.selectFrom('posts')
+				.innerJoin('users', 'users.id', 'posts.user_id')
+				.innerJoin('user_followers', 'user_followers.user_id', 'posts.user_id')
+				.select([
+					'posts.id',
+					'posts.caption',
+					'posts.content',
+					'posts.post_date',
+					'posts.likes',
+					'users.id as userId',
+					'users.username',
+				])
+				.where('user_followers.user_follower', '=', userId)
+				.where('posts.user_id', '!=', userId)
+				.orderBy('posts.post_date', 'desc')
+				.limit(Math.ceil(limit * 0.6) + bufferSize) // Fetch extra for merging
+				.execute();
+
+			// Fetch popular posts (excluding followed users)
+			const popularPosts = await trx
+				.selectFrom('posts')
+				.innerJoin('users', 'users.id', 'posts.user_id')
+				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
+				.select([
+					'posts.id',
+					'posts.caption',
+					'posts.content',
+					'posts.post_date',
+					'posts.likes',
+					'users.id as userId',
+					'users.username',
+					sql<number>`COUNT(post_replies.id)`.as('replies_count'),
+					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
+				])
+				.where('posts.user_id', '!=', userId)
+				.where((eb) =>
+					eb.not(
+						eb.exists(
+							trx
+								.selectFrom('user_followers')
+								.select('user_followers.user_id')
+								.where(sql`user_followers.user_id`, '=', sql`posts.user_id`)
+								.where('user_followers.user_follower', '=', userId),
+						),
+					)
+				)
+				.groupBy(['posts.id', 'users.id'])
+				.orderBy('engagement_score', 'desc')
+				.orderBy('posts.post_date', 'desc')
+				.limit(Math.ceil(limit * 0.4) + bufferSize) // Fetch extra for merging
+				.execute();
+
+			// Merge the results
+			const mergedPosts = this.mergePosts(followedPosts, popularPosts, limit);
+
+			// Apply pagination to the merged results
+			const paginatedPosts = mergedPosts.slice(offset, offset + limit);
+
+			return paginatedPosts;
+		});
+	}
+
 	async getPost(id: string) {
 		const rows = await db
 			.selectFrom('posts')

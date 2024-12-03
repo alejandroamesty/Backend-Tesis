@@ -3,10 +3,32 @@ import { Request, Response } from 'express';
 import postService from '../services/post.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
-import { NotFoundError } from '../utils/errors/httpErrors.ts';
+import { BadRequestError, NotFoundError } from '../utils/errors/httpErrors.ts';
 import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 
 class PostController {
+	async getPosts(req: Request, res: Response) {
+		const user = req.user;
+		const page = Number(req.query.page);
+		try {
+			verifyTypes([
+				{ value: page, type: 'number', optional: true },
+				{ value: user, type: 'uuid' },
+			]);
+			if (page && page < 1) {
+				throw new BadRequestError('El numero de pagina debe ser mayor a 0');
+			}
+			const posts = await postService.getPosts(user as string, page ?? undefined);
+
+			res.json({
+				msg: 'Data encontrada con exito',
+				data: posts,
+			});
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
 	async getPost(req: Request, res: Response) {
 		try {
 			const id = req.params.id;

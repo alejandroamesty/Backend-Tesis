@@ -11,8 +11,8 @@ export async function userAuth(req: Request, res: Response, next: NextFunction):
 			res.status(401).json({ message: 'No token provided' });
 			return;
 		}
-		const payload = await verifyToken(token);
 
+		const payload = await verifyToken(token);
 		if (!payload) {
 			res.status(401).json({ message: 'Invalid token' });
 			return;
