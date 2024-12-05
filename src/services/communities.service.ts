@@ -29,6 +29,7 @@ class CommunitiesService {
 				'communities.name',
 				'communities.description',
 				'communities.image',
+				'communities.chat_id',
 				'communities.private_community',
 				sql`
 					json_agg(
@@ -64,6 +65,7 @@ class CommunitiesService {
 				'communities.name',
 				'communities.description',
 				'communities.image',
+				'communities.chat_id',
 				'communities.private_community',
 				sql`
 					json_agg(
@@ -254,6 +256,29 @@ class CommunitiesService {
 			await trx
 				.insertInto('chat_members')
 				.values({ chat_id: community.chat_id, user_id: user_id })
+				.execute();
+		});
+	}
+
+	async leaveCommunity(community_id: string, user_id: string) {
+		return await db.transaction().execute(async (trx) => {
+			// Check if the user is in the community
+			const [isMember] = await trx
+				.selectFrom('chat_members')
+				.where('chat_id', '=', community_id)
+				.where('user_id', '=', user_id)
+				.selectAll()
+				.execute();
+
+			if (!isMember) {
+				throw new ForbiddenError('No eres miembro de esta comunidad');
+			}
+
+			// Remove the user from the community
+			await trx
+				.deleteFrom('chat_members')
+				.where('chat_id', '=', community_id)
+				.where('user_id', '=', user_id)
 				.execute();
 		});
 	}

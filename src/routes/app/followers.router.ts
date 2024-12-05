@@ -6,6 +6,7 @@ const followerRouter = Router();
 
 followerRouter
 	.get('/:userId', followerController.getUserFollowers)
+	.get('/following/:userId', followerController.getUserFollowing)
 	.post('/follow', userAuth, followerController.followUser)
 	.delete('/unfollow', userAuth, followerController.unfollowUser);
 

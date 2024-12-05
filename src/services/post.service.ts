@@ -35,6 +35,9 @@ class PostService {
 			likes: number;
 			username: string;
 			userId: string;
+			replies_nu: number;
+			images: string[];
+			videos: string[];
 		}>,
 		popularPosts: Array<{
 			id: string;
@@ -44,8 +47,10 @@ class PostService {
 			likes: number;
 			username: string;
 			userId: string;
-			replies_count: number;
+			replies_nu: number;
 			engagement_score: number;
+			images: string[];
+			videos: string[];
 		}>,
 		limit: number,
 	) {
@@ -75,6 +80,9 @@ class PostService {
 				.selectFrom('posts')
 				.innerJoin('users', 'users.id', 'posts.user_id')
 				.innerJoin('user_followers', 'user_followers.user_id', 'posts.user_id')
+				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
+				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 				.select([
 					'posts.id',
 					'posts.caption',
@@ -83,11 +91,15 @@ class PostService {
 					'posts.likes',
 					'users.id as userId',
 					'users.username',
+					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
 				])
 				.where('user_followers.user_follower', '=', userId)
 				.where('posts.user_id', '!=', userId)
 				.orderBy('posts.post_date', 'desc')
-				.limit(Math.ceil(limit * 0.6) + bufferSize) // Fetch extra for merging
+				.groupBy(['posts.id', 'users.id'])
+				.limit(Math.ceil(limit * 0.6) + bufferSize)
 				.execute();
 
 			// Fetch popular posts (excluding followed users)
@@ -95,6 +107,8 @@ class PostService {
 				.selectFrom('posts')
 				.innerJoin('users', 'users.id', 'posts.user_id')
 				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
+				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 				.select([
 					'posts.id',
 					'posts.caption',
@@ -103,8 +117,10 @@ class PostService {
 					'posts.likes',
 					'users.id as userId',
 					'users.username',
-					sql<number>`COUNT(post_replies.id)`.as('replies_count'),
+					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
 					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
 				])
 				.where('posts.user_id', '!=', userId)
 				.where((eb) =>
@@ -121,7 +137,7 @@ class PostService {
 				.groupBy(['posts.id', 'users.id'])
 				.orderBy('engagement_score', 'desc')
 				.orderBy('posts.post_date', 'desc')
-				.limit(Math.ceil(limit * 0.4) + bufferSize) // Fetch extra for merging
+				.limit(Math.ceil(limit * 0.4) + bufferSize)
 				.execute();
 
 			// Merge the results

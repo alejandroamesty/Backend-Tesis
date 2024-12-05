@@ -134,7 +134,7 @@ class AuthController {
 			authService.forgotPassword(email);
 
 			return res.json({
-				msg: 'Si su correo es valido, se le enviará un correo con las instrucciones para recuperar su contraseña',
+				msg: 'Si su correo es valido, se le enviará un correo con las instrucciones para recuperar su contraseña.',
 			});
 		} catch (error: unknown) {
 			handleError(error, res);

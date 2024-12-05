@@ -9,7 +9,7 @@ import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 class PostController {
 	async getPosts(req: Request, res: Response) {
 		const user = req.user;
-		const page = Number(req.query.page);
+		const page = isNaN(Number(req.query.page)) ? undefined : Number(req.query.page);
 		try {
 			verifyTypes([
 				{ value: page, type: 'number', optional: true },

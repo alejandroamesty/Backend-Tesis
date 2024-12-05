@@ -26,6 +26,26 @@ class FollowerController {
 		}
 	}
 
+	async getUserFollowing(req: Request, res: Response) {
+		try {
+			const userId = req.params.userId;
+
+			verifyTypes({ value: userId, type: 'uuid' });
+
+			const following = await followService.getFollowing(userId);
+
+			res.status(200).json({
+				msg: 'Siguiendo encontrados con exito',
+				data: {
+					following_nu: following.length,
+					following,
+				},
+			});
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
 	async followUser(req: Request, res: Response) {
 		try {
 			const follow = req.body.follow;

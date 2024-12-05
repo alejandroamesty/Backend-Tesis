@@ -12,6 +12,7 @@ communitiesRouter
 	.put('/:id', userAuth, communitiesController.update)
 	.post('/:community_id/add', userAuth, communitiesController.addMember)
 	.delete('/:community_id/remove', userAuth, communitiesController.removeMember)
-	.post('/:id/join', userAuth, communitiesController.joinCommunity);
+	.post('/:id/join', userAuth, communitiesController.joinCommunity)
+	.delete('/:id/leave', userAuth, communitiesController.leaveCommunity);
 
 export default communitiesRouter;

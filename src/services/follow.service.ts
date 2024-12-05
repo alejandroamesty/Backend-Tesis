@@ -21,6 +21,26 @@ class FollowService {
 		return rows;
 	}
 
+	async getFollowing(userId: string) {
+		const rows = await db
+			.selectFrom('user_followers')
+			.leftJoin('users', 'user_followers.user_id', 'users.id')
+			.where('user_followers.user_follower', '=', userId)
+			.select([
+				'users.id',
+				'users.fname',
+				'users.lname',
+				'users.username',
+				'users.biography',
+				'users.address',
+				'users.image',
+				'users.birth_date',
+			])
+			.execute();
+
+		return rows;
+	}
+
 	async followUser(userId: string, followerId: string) {
 		const result = await db
 			.insertInto('user_followers')

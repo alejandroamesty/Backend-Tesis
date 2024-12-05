@@ -150,6 +150,21 @@ class CommunitiesController {
 			handleError(error, res);
 		}
 	}
+
+	async leaveCommunity(req: Request, res: Response) {
+		try {
+			const user_id = req.user;
+			const community_id = req.params.id;
+			verifyTypes([{ value: [user_id, community_id], type: 'uuid' }]);
+			const result = await communitiesService.leaveCommunity(
+				community_id,
+				user_id,
+			);
+			res.json({ msg: 'Has abandonado la comunidad con exito', data: result });
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
 }
 
 export default new CommunitiesController();
