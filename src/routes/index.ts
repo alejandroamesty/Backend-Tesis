@@ -10,6 +10,7 @@ import chatsRouter from './app/chats.router.ts';
 import communitiesRouter from './app/communities.router.ts';
 import eventsRouter from './app/events.router.ts';
 import searchRouter from './app/search.router.ts';
+import carbonFootprintRouter from './app/calculator.router.ts';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router
 	.use('/chats', chatsRouter)
 	.use('/communities', communitiesRouter)
 	.use('/events', eventsRouter)
-	.use('/search', searchRouter);
+	.use('/search', searchRouter)
+	.use('/carbon-footprint', carbonFootprintRouter);
 
 export default router;

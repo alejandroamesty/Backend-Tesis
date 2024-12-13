@@ -1,0 +1,8 @@
+{
+	"weight": 0.5,
+	"CO2": 3.5,
+	"never": 0,
+	"rarely": 5,
+	"sometimes": 15,
+	"often": 30
+}
