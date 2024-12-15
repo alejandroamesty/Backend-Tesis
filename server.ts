@@ -13,3 +13,8 @@ new Worker(new URL('./src/workers/staticFileServer.ts', import.meta.url).href, {
 new Worker(new URL('./src/workers/fileUploaderWorker.ts', import.meta.url).href, {
 	type: 'module',
 });
+
+//added socket server worker
+new Worker(new URL('./src/workers/socketServer.ts', import.meta.url).href, {
+	type: 'module',
+});

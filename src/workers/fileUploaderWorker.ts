@@ -56,7 +56,7 @@ Deno.serve({
 	port: Number(Deno.env.get('FILE_UPLOADER_PORT')),
 	onListen() {
 		console.log(
-			`Upload file server running on http://localhost:${Deno.env.get('STATIC_SERVER_PORT')}/`,
+			`Upload file server running on http://localhost:${Deno.env.get('FILE_UPLOADER_PORT')}/`,
 		);
 	},
 }, handler);

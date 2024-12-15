@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Socket.IO Test</title>
+		<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+		<!-- Use latest version -->
+	</head>
+	<body>
+		<h1>Socket.IO Test</h1>
+		<p>Status: <span id="status">Disconnected</span></p>
+		<textarea id="log" cols="50" rows="10" readonly></textarea>
+		<br>
+		<input type="text" id="message" placeholder="Enter message" />
+		<button id="send">Send</button>
+
+		<script>
+			// Replace with your Socket.IO server URL
+			const socket = io('http://localhost:4003', {
+				transports: ['websocket'],
+			}); // Update to match your server's port
+
+			const statusElem = document.getElementById('status');
+			const logElem = document.getElementById('log');
+			const messageInput = document.getElementById('message');
+			const sendButton = document.getElementById('send');
+
+			// Update status on connection
+			socket.on('connect', () => {
+				statusElem.textContent = 'Connected';
+				logElem.value += 'Connected to Socket.IO server.\n';
+			});
+
+			// Update status on disconnection
+			socket.on('disconnect', () => {
+				statusElem.textContent = 'Disconnected';
+				logElem.value += 'Disconnected from server.\n';
+			});
+
+			// Log messages from the server
+			socket.on('message', (data) => {
+				logElem.value += `Server: ${data}\n`;
+			});
+
+			// Log custom events
+			socket.on('custom_event', (data) => {
+				logElem.value += `Custom Event: ${data}\n`;
+			});
+
+			// Log errors
+			socket.on('connect_error', (error) => {
+				logElem.value += `Connection Error: ${error.message}\n`;
+			});
+
+			// Send message to the server
+			sendButton.addEventListener('click', () => {
+				const message = messageInput.value;
+				if (message) {
+					socket.emit('test', message); // Sends a "message" event
+					logElem.value += `You: ${message}\n`;
+					messageInput.value = '';
+				}
+			});
+		</script>
+	</body>
+</html>
