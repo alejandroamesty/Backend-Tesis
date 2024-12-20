@@ -1,44 +1,43 @@
 // @deno-types="@types/express"
 import { Request, Response } from 'express';
-import postService from '../services/post.service.ts';
 import { handleError } from '../utils/errorHandler.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
-import { BadRequestError, NotFoundError } from '../utils/errors/httpErrors.ts';
+import { NotFoundError } from '../utils/errors/httpErrors.ts';
 import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
+import reportService from '../services/report.service.ts';
 
-class PostController {
-	async getPosts(req: Request, res: Response) {
+class ReportController {
+	async getReports(req: Request, res: Response) {
 		const user = req.user;
-		const page = isNaN(Number(req.query.page)) ? undefined : Number(req.query.page);
+		const x = Number(req.query.x);
+		const y = Number(req.query.y);
 		try {
 			verifyTypes([
-				{ value: page, type: 'number', optional: true },
+				{ value: [x, y], type: 'number' },
 				{ value: user, type: 'uuid' },
 			]);
-			if (page && page < 1) {
-				throw new BadRequestError('El numero de pagina debe ser mayor a 0');
-			}
-			const posts = await postService.getPosts(user as string, page ?? undefined);
+
+			const reports = await reportService.getReports({ x, y }, 1, 1);
 
 			res.json({
 				msg: 'Data encontrada con exito',
-				data: posts,
+				data: reports,
 			});
 		} catch (error) {
 			handleError(error, res);
 		}
 	}
 
-	async getPost(req: Request, res: Response) {
+	async getReport(req: Request, res: Response) {
 		try {
 			const id = req.params.id;
 			verifyTypes({ value: id, type: 'uuid' });
-			const post = await postService.getPost(id);
-			if (!post) throw new NotFoundError('Post no encontrado');
+			const report = await reportService.getReport(id);
+			if (!report) throw new NotFoundError('Reporte no encontrado');
 
 			const response = {
 				msg: 'Data encontrada con exito',
-				data: post,
+				data: report,
 			};
 
 			res.json(response);
@@ -47,7 +46,7 @@ class PostController {
 		}
 	}
 
-	async createPost(req: Request, res: Response) {
+	async createReport(req: Request, res: Response) {
 		try {
 			const { caption, coordinates, content, videos, images } = req.body;
 			const x = coordinates?.x || undefined;
@@ -60,12 +59,12 @@ class PostController {
 
 			verifyTypes([
 				{ value: [caption, content], type: 'string' },
-				{ value: [x, y], type: 'number', optional: true },
+				{ value: [x, y], type: 'number' },
 				{ value: videos, type: 'video', optional: true },
 				{ value: images, type: 'image', optional: true },
 			]);
 
-			const post = await postService.createPost({
+			const post = await reportService.createReport({
 				post_data: {
 					caption: caption as string,
 					user_id: user_id,
@@ -77,7 +76,7 @@ class PostController {
 			});
 
 			return res.json({
-				msg: 'Post creado con exito',
+				msg: 'Reporte creado con exito',
 				data: post,
 			});
 		} catch (error) {
@@ -85,7 +84,7 @@ class PostController {
 		}
 	}
 
-	async deletePost(req: Request, res: Response) {
+	async deleteReport(req: Request, res: Response) {
 		try {
 			const id = req.params.id;
 			const user_id = req.user;
@@ -96,10 +95,10 @@ class PostController {
 
 			verifyTypes({ value: [id, user_id], type: 'uuid' });
 
-			const post = await postService.deletePost(id, user_id);
+			const post = await reportService.deleteReport(id, user_id);
 
 			return res.json({
-				msg: 'Post eliminado con exito',
+				msg: 'Reporte eliminado con exito',
 				data: post,
 			});
 		} catch (error) {
@@ -108,4 +107,4 @@ class PostController {
 	}
 }
 
-export default new PostController();
+export default new ReportController();

@@ -6,7 +6,7 @@ import EmissionCalculator from '../utils/EmissionCalculator/EmissionCalculator.t
 class CarbonFootprintController {
 	public getCarbonFootprint(req: Request, res: Response) {
 		try {
-			//direc emissions
+			//direct emissions
 			const { personalVehicle, publicTransport, aircraftTravels } = req.body;
 
 			//indirect emissions

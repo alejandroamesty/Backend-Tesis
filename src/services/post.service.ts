@@ -4,6 +4,7 @@ import { sql } from 'kysely';
 import type { PostsTable } from '../models/posts/posts.model.ts';
 import type { Database } from '../models/database.model.ts';
 import { NotFoundError, UnauthorizedError } from '../utils/errors/httpErrors.ts';
+import categoriesService from './categories.service.ts';
 
 interface ReplyUser {
 	username: string;
@@ -97,6 +98,11 @@ class PostService {
 				])
 				.where('user_followers.user_follower', '=', userId)
 				.where('posts.user_id', '!=', userId)
+				.where(
+					'posts.category_id',
+					'!=',
+					categoriesService.getCategoryByName('Post')?.id || '',
+				)
 				.orderBy('posts.post_date', 'desc')
 				.groupBy(['posts.id', 'users.id'])
 				.limit(Math.ceil(limit * 0.6) + bufferSize)
@@ -133,6 +139,11 @@ class PostService {
 								.where('user_followers.user_follower', '=', userId),
 						),
 					)
+				)
+				.where(
+					'posts.category_id',
+					'!=',
+					categoriesService.getCategoryByName('Post')?.id || '',
 				)
 				.groupBy(['posts.id', 'users.id'])
 				.orderBy('engagement_score', 'desc')
@@ -318,11 +329,15 @@ class PostService {
 	}
 
 	async createPost(data: {
-		post_data: Omit<PostsTable, 'id' | 'likes' | 'post_date' | 'coordinates_id'>;
+		post_data: Omit<
+			PostsTable,
+			'id' | 'likes' | 'post_date' | 'coordinates_id' | 'category_id'
+		>;
 		coordinates?: { x: number; y: number }; // Make coordinates optional
 		images?: string[]; // Optional
 		videos?: string[]; // Optional
 	}) {
+		const category_id = categoriesService.getCategoryByName('Post')?.id;
 		return await db.transaction().execute(async (trx: Transaction<Database>) => {
 			let coordinatesId: string | null = null;
 
@@ -354,6 +369,7 @@ class PostService {
 				.insertInto('posts')
 				.values({
 					...data.post_data,
+					category_id: category_id || '',
 					coordinates_id: coordinatesId, // Can be null if no coordinates
 				})
 				.returning('id')

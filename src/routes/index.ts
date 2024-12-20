@@ -3,6 +3,7 @@ import Router, { Request, Response } from 'express';
 import userRouter from './app/user.router.ts';
 import authRouter from './auth.router.ts';
 import postRouter from './app/post.router.ts';
+import reportRouter from './app/report.router.ts';
 import likesRouter from './app/likes.router.ts';
 import repliesRouter from './app/replies.router.ts';
 import followerRouter from './app/followers.router.ts';
@@ -21,6 +22,7 @@ router
 	.use('/auth', authRouter)
 	.use('/users', userRouter)
 	.use('/posts', postRouter)
+	.use('/reports', reportRouter)
 	.use('/likes', likesRouter)
 	.use('/replies', repliesRouter)
 	.use('/followers', followerRouter)
