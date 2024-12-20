@@ -9,61 +9,71 @@
 	</head>
 	<body>
 		<h1>Socket.IO Test</h1>
+		<input type="text" id="token" placeholder="Insert token" />
 		<p>Status: <span id="status">Disconnected</span></p>
 		<textarea id="log" cols="50" rows="10" readonly></textarea>
 		<br>
 		<input type="text" id="message" placeholder="Enter message" />
+		<input type="text" id="chatid" placeholder="Enter the chat's id" />
 		<button id="send">Send</button>
+		<button onclick="connect()">Connect</button>
 
 		<script>
-			// Replace with your Socket.IO server URL
-			const socket = io('http://localhost:4003', {
-				transports: ['websocket'],
-				//send token
-				query: `token=123`,
-			}); // Update to match your server's port
+			function connect() {
+				const socket = io('http://localhost:4003', {
+					transports: ['websocket'],
+					auth: {
+						token: document.getElementById('token').value,
+					},
+				}); // Update to match your server's port
+				// Update status on connection
+				socket.on('connect', () => {
+					statusElem.textContent = 'Connected';
+					logElem.value += 'Connected to Socket.IO server.\n';
+				});
+
+				// Update status on disconnection
+				socket.on('disconnect', () => {
+					statusElem.textContent = 'Disconnected';
+					logElem.value += 'Disconnected from server.\n';
+				});
+
+				// Log messages from the server
+				socket.on('message', (data) => {
+					logElem.value += `Server: ${data}\n`;
+				});
+
+				// Log custom events
+				socket.on('custom_event', (data) => {
+					logElem.value += `Custom Event: ${data}\n`;
+				});
+
+				// Log errors
+				socket.on('error' || 'connect_error', (error) => {
+					console.error(error);
+					logElem.value += `Error: ${error}\n`;
+				});
+
+				// Send message to the server
+				sendButton.addEventListener('click', () => {
+					const message = {
+						chatId: document.getElementById('chatid').value,
+						content: messageInput.value,
+						contentType: 1,
+					};
+					console.log(message);
+					if (message) {
+						socket.emit('message', message); // Sends a "message" event
+						logElem.value += `You: ${message}\n`;
+						messageInput.value = '';
+					}
+				});
+			}
 
 			const statusElem = document.getElementById('status');
 			const logElem = document.getElementById('log');
 			const messageInput = document.getElementById('message');
 			const sendButton = document.getElementById('send');
-
-			// Update status on connection
-			socket.on('connect', () => {
-				statusElem.textContent = 'Connected';
-				logElem.value += 'Connected to Socket.IO server.\n';
-			});
-
-			// Update status on disconnection
-			socket.on('disconnect', () => {
-				statusElem.textContent = 'Disconnected';
-				logElem.value += 'Disconnected from server.\n';
-			});
-
-			// Log messages from the server
-			socket.on('message', (data) => {
-				logElem.value += `Server: ${data}\n`;
-			});
-
-			// Log custom events
-			socket.on('custom_event', (data) => {
-				logElem.value += `Custom Event: ${data}\n`;
-			});
-
-			// Log errors
-			socket.on('connect_error', (error) => {
-				logElem.value += `Connection Error: ${error.message}\n`;
-			});
-
-			// Send message to the server
-			sendButton.addEventListener('click', () => {
-				const message = messageInput.value;
-				if (message) {
-					socket.emit('test', message); // Sends a "message" event
-					logElem.value += `You: ${message}\n`;
-					messageInput.value = '';
-				}
-			});
 		</script>
 	</body>
 </html>
