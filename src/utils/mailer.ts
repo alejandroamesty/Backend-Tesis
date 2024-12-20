@@ -17,7 +17,7 @@ class Mailer {
 
 		if (!this.senderEmail || !this.password || !this.hostname) {
 			throw new Error(
-				'Missing EMAIL, EMAIL_PASSWORD or EMAIL_HOSTNAME environment variables.',
+				'Missing EMAIL, EMAIL_PASSWORD or EMAIL_HOST environment variables.',
 			);
 		}
 	}

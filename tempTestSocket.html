@@ -19,6 +19,8 @@
 			// Replace with your Socket.IO server URL
 			const socket = io('http://localhost:4003', {
 				transports: ['websocket'],
+				//send token
+				query: `token=123`,
 			}); // Update to match your server's port
 
 			const statusElem = document.getElementById('status');

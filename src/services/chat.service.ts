@@ -145,5 +145,14 @@ class ChatService {
 			}));
 		});
 	}
+
+	async getChatMembers(chatId: string) {
+		return await db
+			.selectFrom('chat_members')
+			.where('chat_id', '=', chatId)
+			.leftJoin('users', 'chat_members.user_id', 'users.id')
+			.select(['users.id', 'users.username', 'users.image'])
+			.execute();
+	}
 }
 export default new ChatService();
