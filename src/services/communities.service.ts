@@ -1,5 +1,5 @@
 import db from '../app/db.ts';
-import { ForbiddenError } from '../utils/errors/httpErrors.ts';
+import { ForbiddenError, NotFoundError } from '../utils/errors/httpErrors.ts';
 import { RequireAtLeastOne } from '../types/types.ts';
 import { sql } from 'kysely';
 type UpdateData = RequireAtLeastOne<
@@ -53,7 +53,7 @@ class CommunitiesService {
 			.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
 			.leftJoin('users as u', 'cm.user_id', 'u.id')
 			.where('communities.id', '=', id)
-			.where(
+			.where( // Check if the user is a member of the community
 				'communities.chat_id',
 				'in',
 				db.selectFrom('chat_members')
@@ -81,6 +81,10 @@ class CommunitiesService {
 			])
 			.groupBy('communities.id')
 			.execute();
+
+		if (!result[0]) {
+			throw new NotFoundError('Comunidad no encontrada');
+		}
 
 		return result[0];
 	}
