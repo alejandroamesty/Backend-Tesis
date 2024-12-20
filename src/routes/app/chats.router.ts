@@ -7,7 +7,7 @@ const chatsRouter = Router();
 
 chatsRouter
 	.get('/', userAuth, chatsController.getChats)
-	.post('/private/chat', userAuth, verifyChatMemberMiddleware, chatsController.createPrivateChat)
+	.post('/private/chat', userAuth, chatsController.createPrivateChat)
 	.get('/message/:chatId', userAuth, verifyChatMemberMiddleware, chatsController.getChatMessages)
 	.post('/message', userAuth, verifyChatMemberMiddleware, chatsController.insertMessage);
 

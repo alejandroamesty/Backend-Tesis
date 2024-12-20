@@ -2,6 +2,7 @@ import { Server as Io, Socket } from 'socket.io';
 import { verifyToken } from '../../utils/JWTComponent.ts';
 import connectedSockets from '../connectedSockets.ts';
 import userService from '../../services/user.service.ts';
+import { ForbiddenError } from '../../utils/errors/httpErrors.ts';
 
 export default async function authenticateSocket(_Io: Io, socket: Socket) {
 	const token = socket.handshake.auth.token as string;
@@ -10,21 +11,21 @@ export default async function authenticateSocket(_Io: Io, socket: Socket) {
 			msg: `No token provided. Must provide a token using the key 'token' in the handshake auth object.`,
 		});
 		socket.disconnect();
-		return;
+		throw new ForbiddenError('No token provided');
 	}
 
 	const payload = await verifyToken(token);
 	if (!payload) {
 		socket.emit('error', { msg: 'Invalid token' });
 		socket.disconnect();
-		return;
+		throw new ForbiddenError('Invalid token');
 	}
 
 	const user = await userService.getUserById(payload.id as string);
 	if (!user) {
 		socket.emit('error', { msg: 'Invalid token' });
 		socket.disconnect();
-		return;
+		throw new ForbiddenError('Invalid token');
 	}
 
 	//todo get friends
@@ -33,5 +34,5 @@ export default async function authenticateSocket(_Io: Io, socket: Socket) {
 
 	socket.emit('authenticated', { msg: 'Authenticated successfully' });
 
-	return payload.id;
+	return { id: payload.id as string, username: user.user?.username || 'unknown' };
 }

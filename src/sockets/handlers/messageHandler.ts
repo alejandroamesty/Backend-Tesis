@@ -5,7 +5,12 @@ import verifyChatMember from '../../services/verifyChatMember.service.ts';
 import connectedSockets from '../connectedSockets.ts';
 import { socketHandleError } from '../socketErrorHandler.ts';
 
-export default function messageHandler(_io: Io, socket: Socket, user_id: string): void {
+export default function messageHandler(
+	_io: Io,
+	socket: Socket,
+	user_id: string,
+	username: string,
+): void {
 	socket.on('message', async (data) => {
 		try {
 			const { chatId, content, contentType } = data;
@@ -38,6 +43,7 @@ export default function messageHandler(_io: Io, socket: Socket, user_id: string)
 								contentType,
 								created_at: new Date().toISOString(),
 								user_id,
+								username: username,
 							});
 						}
 					}

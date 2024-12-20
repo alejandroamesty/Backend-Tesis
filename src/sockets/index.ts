@@ -5,8 +5,8 @@ import { socketHandleError } from './socketErrorHandler.ts';
 
 export default async function index(io: Io, socket: Socket) {
 	try {
-		const user_id = await authenticateSocket(io, socket);
-		messageHandler(io, socket, user_id as string);
+		const { id, username } = await authenticateSocket(io, socket);
+		messageHandler(io, socket, id, username);
 		//other handlers like message, room, etc.
 	} catch (error) {
 		socketHandleError(error, socket);

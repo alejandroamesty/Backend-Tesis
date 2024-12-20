@@ -40,7 +40,9 @@
 
 				// Log messages from the server
 				socket.on('message', (data) => {
-					logElem.value += `Server: ${data}\n`;
+					logElem.value +=
+						`Server: Incomming message in chat ${data.chatId} from ${data.username}\n`;
+					logElem.value += `Server: ${data.content}\n`;
 				});
 
 				// Log custom events
@@ -64,7 +66,9 @@
 					console.log(message);
 					if (message) {
 						socket.emit('message', message); // Sends a "message" event
-						logElem.value += `You: ${message}\n`;
+						logElem.value +=
+							`Server: Outgoing message in chat ${message.chatId}\n`;
+						logElem.value += `You: ${message.content}\n`;
 						messageInput.value = '';
 					}
 				});
