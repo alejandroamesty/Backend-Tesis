@@ -16,10 +16,12 @@ import { ChatMessageTable } from './chats/chat_messages.model.ts';
 
 import { CommunitiesTable } from './communities/communities.model.ts';
 import { EventsTable } from './communities/events.model.ts';
+import { UserEmissionsTable } from './users/user_emissions.model.ts';
 
 export interface Database {
 	//users
 	users: UserTable;
+	user_emissions: UserEmissionsTable;
 	user_followers: UserFollowerTable;
 	saved_posts: SavedPostsTable;
 

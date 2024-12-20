@@ -98,6 +98,19 @@ CREATE UNIQUE INDEX users_email_key ON "public".users (email)
 WHERE
 	deleted_at IS NULL;
 
+CREATE TABLE "public".user_emissions (
+	id uuid DEFAULT uuid_generate_v4 () NOT NULL,
+	user_id uuid NOT NULL,
+	impact double precision DEFAULT 0,
+	direct_emissions double precision DEFAULT 0,
+	indirect_emissions double precision DEFAULT 0,
+	other_emissions double precision DEFAULT 0,
+	created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+	updated_at timestamp DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT pk_user_emissions PRIMARY KEY (id),
+	CONSTRAINT fk_user_emissions_users FOREIGN KEY (user_id) REFERENCES "public".users (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE "public".chat_members (
 	id uuid DEFAULT uuid_generate_v4 () NOT NULL,
 	user_id uuid NOT NULL,

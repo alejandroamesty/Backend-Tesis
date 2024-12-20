@@ -2,10 +2,13 @@ import { Request, Response } from 'express';
 import { handleError } from '../utils/errorHandler.ts';
 import { verifyTypes } from '../utils/typeChecker.ts';
 import EmissionCalculator from '../utils/EmissionCalculator/EmissionCalculator.ts';
+import userService from '../services/user.service.ts';
 
 class CarbonFootprintController {
 	public getCarbonFootprint(req: Request, res: Response) {
 		try {
+			const user = req.user;
+
 			//direct emissions
 			const { personalVehicle, publicTransport, aircraftTravels } = req.body;
 
@@ -189,6 +192,12 @@ class CarbonFootprintController {
 
 				otherIndirectEmissions += plasticEmissions;
 			}
+
+			userService.updateUserEmissions(user, {
+				direct_emissions: directEmissions,
+				indirect_emissions: indirectEmissions,
+				other_emissions: otherIndirectEmissions,
+			});
 
 			res.status(200).json({
 				msg: 'Success',

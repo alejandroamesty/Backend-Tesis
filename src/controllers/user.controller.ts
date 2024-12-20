@@ -6,7 +6,7 @@ import { handleError } from '../utils/errorHandler.ts';
 import { UnauthorizedError } from '../utils/errors/httpErrors.ts';
 
 class UserController {
-	async getAll(_req: Request, res: Response) {
+	async getAll(_req: Request, res: Response) { //delete in production
 		try {
 			const users = await userService.getAllUsers();
 			res.json({

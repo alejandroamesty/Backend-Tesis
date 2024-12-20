@@ -26,6 +26,7 @@ class UserService {
 	async getUserById(id: string) {
 		const user = await db
 			.selectFrom('users')
+			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.leftJoin('user_followers as followers', 'users.id', 'followers.user_follower')
 			.where('users.id', '=', id)
@@ -39,10 +40,17 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
+				'user_emissions.id as emission_id',
+				'user_emissions.impact',
+				'user_emissions.direct_emissions',
+				'user_emissions.indirect_emissions',
+				'user_emissions.other_emissions',
+				'user_emissions.created_at',
+				'user_emissions.updated_at',
 				db.fn.count('user_followers.user_id').as('following_nu'),
 				sql<number>`COUNT(followers.user_id)`.as('followers_nu'),
 			])
-			.groupBy('users.id')
+			.groupBy(['users.id', 'user_emissions.id'])
 			.executeTakeFirst();
 
 		if (user) {
@@ -56,10 +64,11 @@ class UserService {
 	async getUserByUsername(username: string) {
 		const user = await db
 			.selectFrom('users')
+			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.username', '=', username)
 			.select([
-				'users.id',
+				'users.id as id',
 				'users.fname',
 				'users.lname',
 				'users.username',
@@ -67,9 +76,16 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
+				'user_emissions.id as emissions_id',
+				'user_emissions.impact',
+				'user_emissions.direct_emissions',
+				'user_emissions.indirect_emissions',
+				'user_emissions.other_emissions',
+				'user_emissions.created_at',
+				'user_emissions.updated_at',
 				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
-			.groupBy('users.id') // Ensure grouping for aggregate functions
+			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 
 		if (user) {
@@ -83,6 +99,7 @@ class UserService {
 	async getUserByEmail(email: string) {
 		const user = await db
 			.selectFrom('users')
+			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
 			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
 			.where('users.email', '=', email)
 			.select([
@@ -94,9 +111,16 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
+				'user_emissions.id as emissions_id',
+				'user_emissions.impact',
+				'user_emissions.direct_emissions',
+				'user_emissions.indirect_emissions',
+				'user_emissions.other_emissions',
+				'user_emissions.created_at',
+				'user_emissions.updated_at',
 				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
-			.groupBy('users.id') // Ensure grouping for aggregate functions
+			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 
 		if (user) {
@@ -126,6 +150,18 @@ class UserService {
 			'is',
 			null,
 		).execute();
+	}
+
+	async updateUserEmissions(
+		id: string,
+		data: Partial<{
+			impact: number;
+			direct_emissions: number;
+			indirect_emissions: number;
+			other_emissions: number;
+		}>,
+	) {
+		return await db.updateTable('user_emissions').set(data).where('user_id', '=', id).execute();
 	}
 
 	async deleteUser(id: string) {
