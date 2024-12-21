@@ -17,30 +17,42 @@ const handler = async (request: Request): Promise<Response> => {
 		await ensureDirectoryExists(STATIC_DIR);
 
 		const formData = await request.formData();
-		const file = formData.get('file') as File;
-		if (!file) {
-			return new Response('No file found in request', { status: 400 });
+		const files = formData.getAll('file') as File[];
+		const newFiles: string[] = [];
+		const errors: unknown[] = [];
+		if (!files.length) {
+			return new Response('No files found in request', { status: 400 });
 		}
 
-		// Validate MIME type
-		const fileType = file.type; // Get the file's MIME type
-		if (!Object.values(MIME_TYPES).includes(fileType)) {
-			return new Response('Unsupported file type', { status: 400 });
+		for (const file of files) {
+			try {
+				// Validate MIME type
+				const fileType = file.type; // Get the file's MIME type
+				if (!Object.values(MIME_TYPES).includes(fileType)) {
+					return new Response('Unsupported file type', { status: 400 });
+				}
+
+				// Generate a unique file name with proper extension
+				const extension = Object.keys(MIME_TYPES).find((key) =>
+					MIME_TYPES[key] === fileType
+				) ||
+					'';
+
+				const fileName = `${crypto.randomUUID()}${extension}`;
+
+				const filePath = `${STATIC_DIR}/${fileName}`;
+
+				// Save the file
+				const arrayBuffer = await file.arrayBuffer();
+				const fileBuffer = new Uint8Array(arrayBuffer);
+				await Deno.writeFile(filePath, fileBuffer);
+				newFiles.push(fileName);
+			} catch (error: unknown) {
+				errors.push(error);
+			}
 		}
 
-		// Generate a unique file name with proper extension
-		const extension = Object.keys(MIME_TYPES).find((key) => MIME_TYPES[key] === fileType) || '';
-
-		const fileName = `${crypto.randomUUID()}${extension}`;
-
-		const filePath = `${STATIC_DIR}/${fileName}`;
-
-		// Save the file
-		const arrayBuffer = await file.arrayBuffer();
-		const fileBuffer = new Uint8Array(arrayBuffer);
-		await Deno.writeFile(filePath, fileBuffer);
-
-		const responseBody = JSON.stringify({ msg: 'File uploaded', fileName: fileName });
+		const responseBody = JSON.stringify({ msg: 'File uploaded', fileNames: newFiles });
 
 		return new Response(responseBody, {
 			status: 200,
