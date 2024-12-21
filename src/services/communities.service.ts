@@ -126,7 +126,7 @@ class CommunitiesService {
 				.execute();
 
 			// Create the community
-			await trx
+			const community = await trx
 				.insertInto('communities')
 				.values({
 					owner_id: data.user_id,
@@ -136,7 +136,10 @@ class CommunitiesService {
 					description: data.description,
 					private_community: data.private_community,
 				})
+				.returningAll()
 				.execute();
+
+			return community;
 		});
 	}
 
@@ -241,7 +244,7 @@ class CommunitiesService {
 				.execute();
 
 			if (community.private_community) {
-				throw new ForbiddenError('Esta comunidad es privada');
+				throw new NotFoundError('Comunidad no encontrada');
 			}
 
 			// Check if the user is already in the community

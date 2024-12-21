@@ -1,5 +1,6 @@
 import { sql } from 'kysely';
 import db from '../app/db.ts';
+import { NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class ChatService {
 	async createPrivateChat(user1: string, user2: string) {
@@ -82,8 +83,6 @@ class ChatService {
 	}
 
 	async getChats(userId: string) {
-		// updated code using transactions
-
 		return await db.transaction().execute(async (trx) => {
 			// step 1: fetch chats
 			const chats = await trx
@@ -147,12 +146,18 @@ class ChatService {
 	}
 
 	async getChatMembers(chatId: string) {
-		return await db
+		const response = await db
 			.selectFrom('chat_members')
 			.where('chat_id', '=', chatId)
 			.leftJoin('users', 'chat_members.user_id', 'users.id')
 			.select(['users.id', 'users.username', 'users.image'])
 			.execute();
+
+		if (response.length === 0) {
+			throw new NotFoundError('Chat not found');
+		}
+
+		return response;
 	}
 }
 export default new ChatService();

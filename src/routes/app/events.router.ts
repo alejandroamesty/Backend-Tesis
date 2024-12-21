@@ -5,7 +5,8 @@ import { userAuth } from '../../middlewares/userAuth.ts';
 const eventsRouter = Router();
 
 eventsRouter
-	.get('/:id', userAuth, eventsController.getAll)
+	.get('/', userAuth, eventsController.getAll)
+	.get('/:id', userAuth, eventsController.getAllFromCommunity)
 	.post('/:id', userAuth, eventsController.createEvent)
 	.put('/:id', userAuth, eventsController.updateEvent)
 	.delete('/:id', userAuth, eventsController.cancelEvent);

@@ -1,8 +1,36 @@
 import db from '../app/db.ts';
-import { ForbiddenError } from '../utils/errors/httpErrors.ts';
+import { ForbiddenError, NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class EventsService {
-	async getAll(community_id: string, user_id: string) {
+	async getAll(user_id: string) {
+		return await db.transaction().execute(async (trx) => {
+			const communities = await trx
+				.selectFrom('communities')
+				.where('owner_id', '=', user_id)
+				.select(['id'])
+				.execute();
+
+			const events = await trx
+				.selectFrom('events as e')
+				.leftJoin('coordinates as c', 'e.event_location', 'c.id')
+				.where('community_id', 'in', communities.map((c) => c.id))
+				.select([
+					'e.id',
+					'e.name',
+					'e.description',
+					'e.event_date',
+					'e.event_location',
+					'e.cancelled',
+					'c.x',
+					'c.y',
+				])
+				.execute();
+
+			return events;
+		});
+	}
+
+	async getAllFromCommunity(community_id: string, user_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			const [community] = await trx
 				.selectFrom('communities')
@@ -11,8 +39,8 @@ class EventsService {
 				.execute();
 
 			if (!community) {
-				throw new ForbiddenError(
-					'No tienes permisos para ver los eventos de esta comunidad',
+				throw new NotFoundError(
+					'La comunidad que buscas no existe',
 				);
 			}
 
@@ -25,8 +53,8 @@ class EventsService {
 					.execute();
 
 				if (!member) {
-					throw new ForbiddenError(
-						'No tienes permisos para ver los eventos de esta comunidad',
+					throw new NotFoundError(
+						'La comunidad que buscas no existe',
 					);
 				}
 			}
