@@ -1,7 +1,8 @@
 import db from '../app/db.ts';
 import { ForbiddenError, NotFoundError } from '../utils/errors/httpErrors.ts';
 import { RequireAtLeastOne } from '../types/types.ts';
-import { sql } from 'kysely';
+import { sql, Transaction } from 'kysely';
+import { Database } from '../models/database.model.ts';
 type UpdateData = RequireAtLeastOne<
 	{
 		name?: string;
@@ -48,45 +49,51 @@ class CommunitiesService {
 	}
 
 	async getById(id: string, user_id: string) {
-		const result = await db
-			.selectFrom('communities')
-			.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
-			.leftJoin('users as u', 'cm.user_id', 'u.id')
-			.where('communities.id', '=', id)
-			.where( // Check if the user is a member of the community
-				'communities.chat_id',
-				'in',
-				db.selectFrom('chat_members')
-					.select('chat_id')
-					.where('user_id', '=', user_id),
-			)
-			.select([
-				'communities.id',
-				'communities.name',
-				'communities.description',
-				'communities.image',
-				'communities.chat_id',
-				'communities.private_community',
-				sql`
-					json_agg(
-						json_build_object(
-							'user_id', u.id,
-							'username', u.username,
-							'image', u.image,
-							'fname', u.fname,
-							'lname', u.lname
-						)
-					) FILTER (WHERE u.id IS NOT NULL)
-				`.as('members'),
-			])
-			.groupBy('communities.id')
-			.execute();
+		return await db.transaction().execute(async (trx: Transaction<Database>) => {
+			const [community] = await trx
+				.selectFrom('communities')
+				.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
+				.leftJoin('users as u', 'cm.user_id', 'u.id')
+				.where('communities.id', '=', id)
+				.select([
+					'communities.id',
+					'communities.name',
+					'communities.description',
+					'communities.image',
+					'communities.chat_id',
+					'communities.private_community',
+					sql`
+						json_agg(
+							json_build_object(
+								'user_id', u.id,
+								'username', u.username,
+								'image', u.image,
+								'fname', u.fname,
+								'lname', u.lname
+							)
+						) FILTER (WHERE u.id IS NOT NULL)
+					`.as('members'),
+				])
+				.groupBy('communities.id')
+				.execute();
 
-		if (!result[0]) {
-			throw new NotFoundError('Comunidad no encontrada');
-		}
+			if (community.private_community) {
+				const [member] = await trx
+					.selectFrom('chat_members')
+					.where('chat_id', '=', community.chat_id)
+					.where('user_id', '=', user_id)
+					.selectAll()
+					.execute();
 
-		return result[0];
+				if (!member) {
+					throw new NotFoundError('Comunidad no encontrada');
+				}
+			}
+			if (!community) {
+				throw new NotFoundError('Comunidad no encontrada');
+			}
+			return community;
+		});
 	}
 
 	async create(data: {
