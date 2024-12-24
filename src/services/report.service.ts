@@ -7,10 +7,12 @@ import { NotFoundError, UnauthorizedError } from '../utils/errors/httpErrors.ts'
 
 class ReportService {
 	async getReport(id: string) {
-		const post = await db
+		const report = await db
 			.selectFrom('posts')
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
+			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 			.select([
 				'posts.id',
 				'posts.caption',
@@ -18,11 +20,14 @@ class ReportService {
 				'posts.post_date',
 				'coordinates.x',
 				'coordinates.y',
+				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
 			])
 			.where('posts.id', '=', id)
+			.groupBy(['posts.id', 'coordinates.id'])
 			.executeTakeFirst();
 
-		return post;
+		return report;
 	}
 
 	async getReports(location: { x: number; y: number }, radius: number, months: number) {
@@ -33,6 +38,8 @@ class ReportService {
 			.selectFrom('posts')
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
+			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 			.select([
 				'posts.id',
 				'posts.caption',
@@ -40,6 +47,8 @@ class ReportService {
 				'posts.post_date',
 				'coordinates.x',
 				'coordinates.y',
+				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
 				sql`(
 					6371 * 2 * ASIN(SQRT(
 						POWER(SIN((radians(${location.y}) - radians(coordinates.y)) / 2), 2) +

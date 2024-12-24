@@ -18,6 +18,8 @@ import { CommunitiesTable } from './communities/communities.model.ts';
 import { EventsTable } from './communities/events.model.ts';
 import { UserEmissionsTable } from './users/user_emissions.model.ts';
 
+import { ActivitiesTable } from './activities.model.ts';
+
 export interface Database {
 	//users
 	users: UserTable;
@@ -43,4 +45,7 @@ export interface Database {
 	//communities
 	communities: CommunitiesTable;
 	events: EventsTable;
+
+	//activities
+	activities: ActivitiesTable;
 }
