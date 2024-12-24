@@ -11,8 +11,6 @@ class keysHandler {
 	}
 
 	public verifyKey(user_id: string, key: number) {
-		console.log('inserted key:', key, 'type:', typeof key);
-		console.log('stored key:', this.keys[user_id], 'type:', typeof this.keys[user_id]);
 		return this.keys[user_id] === key;
 	}
 

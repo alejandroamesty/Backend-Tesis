@@ -141,6 +141,31 @@ class AuthController {
 		}
 	}
 
+	async verifyKey(req: Request, res: Response) {
+		try {
+			const { email, key } = req.body;
+
+			verifyTypes([
+				{
+					value: email,
+					type: 'email',
+				},
+				{
+					value: key,
+					type: 'number',
+				},
+			]);
+
+			await authService.verifyKey(email, key);
+
+			return res.json({
+				msg: 'Codigo verificado con exito',
+			});
+		} catch (error: unknown) {
+			handleError(error, res);
+		}
+	}
+
 	async resetPassword(req: Request, res: Response) {
 		try {
 			const { email, key, password } = req.body;

@@ -107,6 +107,27 @@ class AuthService {
 		});
 	}
 
+	async verifyKey(email: string, key: number) {
+		const user = await db
+			.selectFrom('users')
+			.select('id')
+			.where('email', '=', email)
+			.where('deleted_at', 'is', null)
+			.executeTakeFirst();
+
+		if (!user) {
+			throw new ForbiddenError('Codigo invalido');
+		}
+
+		const isKeyValid = keysHandler.verifyKey(user.id, key);
+
+		if (!isKeyValid) {
+			throw new ForbiddenError('Codigo invalido');
+		}
+
+		return true;
+	}
+
 	async resetPassword(email: string, key: number, password: string) {
 		await db.transaction().execute(async (trx) => {
 			const user = await trx

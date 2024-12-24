@@ -7,6 +7,7 @@ const authRouter = Router();
 authRouter.post('/register', authController.register)
 	.post('/login', authController.login)
 	.post('/forgot-password', authController.forgotPassword)
+	.post('/verify-key', authController.verifyKey)
 	.put('/reset-password', authController.resetPassword)
 	.delete('/delete-account/', userAuth, authController.deleteAccount);
 
