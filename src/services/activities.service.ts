@@ -1,5 +1,5 @@
 import db from '../app/db.ts';
-import { NotFoundError } from '../utils/errors/httpErrors.ts';
+import { BadRequestError, NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class ActivitiesService {
 	async getActivities(user_id: string) {
@@ -16,13 +16,18 @@ class ActivitiesService {
 			.execute();
 	}
 
-	async insertActivity(user_id: string, activity_description: string) {
+	async insertActivity(user_id: string, activity_description: string[]) {
+		if (activity_description.length === 0) {
+			throw new BadRequestError('Debe ingresar al menos una actividad');
+		}
 		return await db
 			.insertInto('activities')
-			.values({
-				user_id: user_id,
-				activity_description: activity_description,
-			}).returningAll()
+			.values(
+				activity_description.map((description) => ({
+					user_id: user_id,
+					activity_description: description,
+				})),
+			).returningAll()
 			.execute();
 	}
 

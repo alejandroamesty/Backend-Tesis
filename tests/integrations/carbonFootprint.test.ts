@@ -1,11 +1,3 @@
-/*			const { personalVehicle, publicTransport, aircraftTravels } = req.body;
-
-			//indirect emissions
-			const { acUnits, kitchen } = req.body;
-
-			//other indirect emissions
-			const { food, consumedFood, plastic } = req.body;
-*/
 import { assertEquals } from '@std/assert';
 import getToken from '../getToken.ts';
 

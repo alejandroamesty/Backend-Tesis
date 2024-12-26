@@ -39,7 +39,7 @@ Deno.test('integration: communities - communities - post community', async () =>
 	const _data = await response.json();
 	assertEquals(response.status, 201);
 	// Delete the community
-	const deleteResponse = await fetch(`${moduleURL}/${_data.data[0].id}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${_data.data[0].id}/`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ Deno.test('integration: communities - communities - delete community', async () 
 	});
 	const { data } = await communityResponse.json();
 	// Delete the community
-	const response = await fetch(`${moduleURL}/${data[0].id}`, {
+	const response = await fetch(`${moduleURL}/${data[0].id}/`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ Deno.test('integration: communities - communities - delete community', async () 
 
 Deno.test('integration: communities - communities - not found delete community', async () => {
 	const token = await getToken();
-	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
+	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000/`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ Deno.test('integration: communities - communities - get community by id', async 
 	const _data = await response.json();
 	assertEquals(response.status, 200);
 	// Delete the community
-	const deleteResponse = await fetch(`${moduleURL}/${data[0].id}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${data[0].id}/`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -384,4 +384,20 @@ Deno.test('integration: communities - communities - delete member', async () => 
 		},
 	});
 	await deleteCommunityResponse.body?.cancel();
+});
+
+Deno.test('integration: communities - communities - not found delete member', async () => {
+	const token = await getToken();
+	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000/remove`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`,
+		},
+		body: JSON.stringify({
+			user_id: '00000000-0000-200a-a000-000000000000',
+		}),
+	});
+	const _data = await response.json();
+	assertEquals(response.status, 403);
 });

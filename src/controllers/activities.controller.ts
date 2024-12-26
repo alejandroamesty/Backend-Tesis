@@ -19,8 +19,8 @@ class ActivitiesController {
 			const activity_description = req.body.activity_description;
 
 			verifyTypes([
+				{ value: activity_description, type: 'Array<string>' },
 				{ value: user_id, type: 'uuid' },
-				{ value: activity_description, type: 'string' },
 			]);
 			const activity = await ActivitiesService.insertActivity(
 				req.user,

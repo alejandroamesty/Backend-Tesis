@@ -35,6 +35,14 @@ export function verifyTypes(
 	if (Array.isArray(data)) {
 		for (const { value, type, optional } of data) {
 			if (Array.isArray(value)) {
+				//check if the type is Array<type>
+				if (/^Array<.+>$/.test(type)) {
+					const itemType = type.slice(6, -1) as AllowedTypes;
+					for (const val of value) {
+						checkType(val, itemType, optional);
+					}
+					continue;
+				}
 				for (const val of value) {
 					checkType(val, type, optional);
 				}

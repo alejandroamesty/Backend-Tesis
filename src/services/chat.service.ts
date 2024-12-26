@@ -84,7 +84,7 @@ class ChatService {
 
 	async getChats(userId: string) {
 		return await db.transaction().execute(async (trx) => {
-			// step 1: fetch chats
+			// step 1: fetch chatss
 			const chats = await trx
 				.selectFrom('chat_members')
 				.where('chat_members.user_id', '=', userId)
@@ -104,7 +104,7 @@ class ChatService {
 
 			// step 2: fetch members for all chats
 			const chatIds = chats.map((chat) => chat.chatId);
-
+			if (chatIds.length === 0) return []; // No chats found
 			const members = await trx
 				.selectFrom('chat_members')
 				.where('chat_members.chat_id', 'in', chatIds)

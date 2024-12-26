@@ -5,15 +5,19 @@ class EventsService {
 	async getAll(user_id: string) {
 		return await db.transaction().execute(async (trx) => {
 			const communities = await trx
-				.selectFrom('communities')
-				.where('owner_id', '=', user_id)
-				.select(['id'])
+				.selectFrom('chat_members')
+				.where('user_id', '=', user_id)
+				.select(['chat_id'])
 				.execute();
+
+			if (!communities.length) {
+				return [];
+			}
 
 			const events = await trx
 				.selectFrom('events as e')
 				.leftJoin('coordinates as c', 'e.event_location', 'c.id')
-				.where('community_id', 'in', communities.map((c) => c.id))
+				.where('community_id', 'in', communities.map((c) => c.chat_id))
 				.select([
 					'e.id',
 					'e.name',
