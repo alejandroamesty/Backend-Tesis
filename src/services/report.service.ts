@@ -30,7 +30,7 @@ class ReportService {
 				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
 			])
 			.where('posts.id', '=', id)
-			.groupBy(['posts.id', 'coordinates.id'])
+			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
 			.executeTakeFirst();
 
 		return report;
@@ -83,7 +83,7 @@ class ReportService {
 				radius,
 			)
 			.orderBy('distance', 'asc')
-			.groupBy(['posts.id', 'coordinates.id'])
+			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
 			.execute();
 
 		return results;
