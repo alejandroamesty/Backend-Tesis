@@ -124,6 +124,22 @@ class ReportService {
 				.returning('id')
 				.executeTakeFirstOrThrow();
 
+			const userInfo = await trx
+				.selectFrom('users')
+				.select([
+					'id',
+					'username',
+					'fname',
+					'lname',
+					'image',
+					'biography',
+					'email',
+					'address',
+					'birth_date',
+				])
+				.where('id', '=', data.post_data.user_id)
+				.executeTakeFirst();
+
 			const postId = insertedPost.id;
 
 			// Prepare and insert images and videos
@@ -137,7 +153,14 @@ class ReportService {
 				await trx.insertInto('post_videos').values(videos).execute();
 			}
 
-			return postId;
+			return {
+				user: {
+					...userInfo,
+				},
+				post: {
+					post_id: postId,
+				},
+			};
 		});
 	}
 
