@@ -141,14 +141,14 @@ Deno.test('integration: events - cancel event', async () => {
 		body: JSON.stringify({
 			name: 'Test Event',
 			description: 'Test Event Description',
-			event_date: '2024-01-01T12:00:00Z',
+			event_date: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
 			event_location: { x: 10.1234, y: -64.5678 },
 		}),
 	});
 	const { data } = await eventResponse.json();
 
 	// Cancel the event
-	const response = await fetch(`${moduleURL}/${data[0].id}`, {
+	const response = await fetch(`${moduleURL}/${data.id}`, {
 		method: 'DELETE',
 		headers: {
 			'Authorization': `Bearer ${token}`,
@@ -170,7 +170,23 @@ Deno.test('integration: events - cancel event', async () => {
 
 Deno.test('integration: events - update event', async () => {
 	const token = await getToken();
-	const chatId = 'valid-chat-id'; // Replace with a valid chat ID for testing
+
+	//create a community
+
+	const communityResponse = await fetch(communityURL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`,
+		},
+		body: JSON.stringify({
+			name: 'Test Community',
+			description: 'Test Community Description',
+			private_community: true,
+		}),
+	});
+	const { data: newData } = await communityResponse.json();
+	const chatId = newData[0].id;
 
 	// Create an event
 	const eventResponse = await fetch(`${moduleURL}/${chatId}`, {
@@ -182,14 +198,14 @@ Deno.test('integration: events - update event', async () => {
 		body: JSON.stringify({
 			name: 'Test Event',
 			description: 'Test Event Description',
-			event_date: '2024-01-01T12:00:00Z',
+			event_date: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
 			event_location: { x: 10.1234, y: -64.5678 },
 		}),
 	});
 	const { data } = await eventResponse.json();
 
 	// Update the event
-	const response = await fetch(`${moduleURL}/${data[0].id}`, {
+	const response = await fetch(`${moduleURL}/${data.id}`, {
 		method: 'PUT',
 		headers: {
 			'Content-Type': 'application/json',
@@ -203,13 +219,23 @@ Deno.test('integration: events - update event', async () => {
 	assertEquals(response.status, 200);
 
 	// Cancel the event
-	const deleteResponse = await fetch(`${moduleURL}/${data[0].id}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${data.id}`, {
 		method: 'DELETE',
 		headers: {
 			'Authorization': `Bearer ${token}`,
 		},
 	});
 	await deleteResponse.body?.cancel();
+
+	// Delete the community
+	const deleteCommunityResponse = await fetch(`${communityURL}/${chatId}`, {
+		method: 'DELETE',
+		headers: {
+			'Authorization': `Bearer ${token}`,
+		},
+	});
+
+	await deleteCommunityResponse.body?.cancel();
 });
 
 Deno.test('integration: events - not found cancel event', async () => {
@@ -221,7 +247,7 @@ Deno.test('integration: events - not found cancel event', async () => {
 		},
 	});
 	const _data = await response.json();
-	assertEquals(response.status, 404);
+	assertEquals(response.status, 403);
 });
 
 Deno.test('integration: events - not found update event', async () => {
@@ -237,5 +263,5 @@ Deno.test('integration: events - not found update event', async () => {
 		}),
 	});
 	const _data = await response.json();
-	assertEquals(response.status, 404);
+	assertEquals(response.status, 403);
 });

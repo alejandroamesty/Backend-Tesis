@@ -31,31 +31,44 @@ class AuthService {
 
 		const hashedPassword = await hasher.hash(password, 4);
 
-		const result = await db
-			.insertInto('users')
-			.values({
-				username,
-				image,
-				fname,
-				lname,
-				biography,
-				email,
-				password: hashedPassword,
-				address,
-				birth_date: birth_date ? new Date(birth_date) : null,
-			})
-			.returning([
-				'id',
-				'username',
-				'image',
-				'fname',
-				'lname',
-				'biography',
-				'email',
-				'address',
-				'birth_date',
-			])
-			.executeTakeFirstOrThrow();
+		const result = await db.transaction().execute(async (trx) => {
+			const user = await trx.insertInto('users')
+				.values({
+					username,
+					image,
+					fname,
+					lname,
+					biography,
+					email,
+					password: hashedPassword,
+					address,
+					birth_date: birth_date ? new Date(birth_date) : null,
+				})
+				.returning([
+					'id',
+					'username',
+					'image',
+					'fname',
+					'lname',
+					'biography',
+					'email',
+					'address',
+					'birth_date',
+				])
+				.executeTakeFirstOrThrow();
+
+			await trx.insertInto('user_emissions')
+				.values({
+					user_id: user.id,
+					impact: 0,
+					direct_emissions: 0,
+					indirect_emissions: 0,
+					other_emissions: 0,
+				})
+				.execute();
+
+			return user;
+		});
 
 		return result;
 	}
