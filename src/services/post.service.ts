@@ -123,6 +123,9 @@ class PostService {
 					'posts.likes',
 					'users.id as userId',
 					'users.username',
+					'users.fname',
+					'users.lname',
+					'users.image',
 					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
 					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
 					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
@@ -377,6 +380,12 @@ class PostService {
 
 			const postId = insertedPost.id;
 
+			const user = await trx
+				.selectFrom('users')
+				.select(['id', 'username', 'fname', 'lname', 'image'])
+				.where('id', '=', data.post_data.user_id)
+				.executeTakeFirstOrThrow();
+
 			// Prepare and insert images and videos
 			const images = data.images?.map((image) => ({ post_id: postId, image })) ?? [];
 			const videos = data.videos?.map((video) => ({ post_id: postId, video })) ?? [];
@@ -388,7 +397,14 @@ class PostService {
 				await trx.insertInto('post_videos').values(videos).execute();
 			}
 
-			return postId;
+			return {
+				user: {
+					...user,
+				},
+				post: {
+					id: postId,
+				},
+			};
 		});
 	}
 
