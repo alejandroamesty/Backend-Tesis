@@ -11,6 +11,7 @@ class ReportService {
 			.selectFrom('posts')
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
+			.innerJoin('users', 'posts.user_id', 'users.id')
 			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
 			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 			.select([
@@ -18,6 +19,11 @@ class ReportService {
 				'posts.caption',
 				'posts.content',
 				'posts.post_date',
+				'users.id as userId',
+				'users.username',
+				'users.fname',
+				'users.lname',
+				'users.image',
 				'coordinates.x',
 				'coordinates.y',
 				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
@@ -36,6 +42,7 @@ class ReportService {
 
 		const results = await db
 			.selectFrom('posts')
+			.innerJoin('users', 'posts.user_id', 'users.id')
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
 			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
@@ -45,6 +52,11 @@ class ReportService {
 				'posts.caption',
 				'posts.content',
 				'posts.post_date',
+				'users.id as userId',
+				'users.username',
+				'users.fname',
+				'users.lname',
+				'users.image',
 				'coordinates.x',
 				'coordinates.y',
 				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
