@@ -81,6 +81,7 @@ class PostController {
 				data: post,
 			});
 		} catch (error) {
+			console.log(error);
 			handleError(error, res);
 		}
 	}

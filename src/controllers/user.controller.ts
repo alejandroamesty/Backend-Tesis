@@ -89,15 +89,14 @@ class UserController {
 						userData.fname,
 						userData.lname,
 						userData.biography,
-						userData.email,
-						userData.password,
 						userData.address,
 						userData.birth_date,
 					],
 					type: 'string',
 					optional: true,
 				},
-				{ value: id, type: 'number' },
+				{ value: userData.email, type: 'email', optional: true },
+				{ value: userData.password, type: 'password', optional: true },
 			]);
 
 			const user = await userService.updateUser(id, userData);

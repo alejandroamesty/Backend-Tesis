@@ -36,4 +36,7 @@ const customIOHandler: Deno.ServeHandler = (
 Deno.serve({
 	port: port,
 	hostname: host,
+	onListen: () => {
+		console.log(`Socket server listening on ${host}:${port}`);
+	},
 }, customIOHandler);

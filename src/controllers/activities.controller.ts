@@ -1,18 +1,19 @@
 import ActivitiesService from '../services/activities.service.ts';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { verifyTypes } from '../utils/typeChecker.ts';
+import { handleError } from '../utils/errorHandler.ts';
 
 class ActivitiesController {
-	async getActivities(req: Request, res: Response, next: NextFunction) {
+	async getActivities(req: Request, res: Response) {
 		try {
 			const activities = await ActivitiesService.getActivities(req.user);
 			res.status(200).json({ msg: 'Actividades encontradas con exito', data: activities });
 		} catch (error) {
-			next(error);
+			handleError(error, res);
 		}
 	}
 
-	async insertActivity(req: Request, res: Response, next: NextFunction) {
+	async insertActivity(req: Request, res: Response) {
 		try {
 			const user_id = req.user;
 			const activity_description = req.body.activity_description;
@@ -27,11 +28,11 @@ class ActivitiesController {
 			);
 			res.status(201).json({ msg: 'Actividad creada con exito', data: activity });
 		} catch (error) {
-			next(error);
+			handleError(error, res);
 		}
 	}
 
-	async updateActivity(req: Request, res: Response, next: NextFunction) {
+	async updateActivity(req: Request, res: Response) {
 		try {
 			const user_id = req.body.user_id || req.user;
 			const activity_id = req.params.activity_id;
@@ -49,7 +50,7 @@ class ActivitiesController {
 			);
 			res.status(200).json({ msg: 'Actividad actualizada con exito', data: activity });
 		} catch (error) {
-			next(error);
+			handleError(error, res);
 		}
 	}
 }

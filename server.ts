@@ -1,10 +1,11 @@
-import app from './src/app/index.ts';
+import startWorkers from './src/workers/workerSpawner.ts';
+import startLoadBalancer from './src/workers/loadBalancer.ts';
 
-const port = Number(Deno.env.get('PORT')) || 3000;
+const mainServers = Number(Deno.env.get('WORKERS')) || navigator.hardwareConcurrency - 4;
 
-app.listen(port, () => {
-	console.log(`Server running on port ${port}`);
-});
+startWorkers(8000, mainServers < 1 ? 1 : mainServers);
+
+startLoadBalancer(Number(Deno.env.get('PORT')), 8000, mainServers < 1 ? 1 : mainServers);
 
 new Worker(new URL('./src/workers/staticFileServer.ts', import.meta.url).href, {
 	type: 'module',

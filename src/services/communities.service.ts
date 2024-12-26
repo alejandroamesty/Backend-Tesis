@@ -77,6 +77,10 @@ class CommunitiesService {
 				.groupBy('communities.id')
 				.execute();
 
+			if (!community) {
+				throw new NotFoundError('Comunidad no encontrada');
+			}
+
 			if (community.private_community) {
 				const [member] = await trx
 					.selectFrom('chat_members')

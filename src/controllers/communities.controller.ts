@@ -35,8 +35,6 @@ class CommunitiesController {
 			const user_id = req.user;
 			const { private_community, members, image, name, description } = req.body;
 
-			console.log(req.body);
-
 			verifyTypes([
 				{ value: private_community, type: 'boolean' },
 				{ value: user_id, type: 'uuid' },

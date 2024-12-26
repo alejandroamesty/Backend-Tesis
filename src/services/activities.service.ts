@@ -1,4 +1,5 @@
 import db from '../app/db.ts';
+import { NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class ActivitiesService {
 	async getActivities(user_id: string) {
@@ -25,18 +26,22 @@ class ActivitiesService {
 			.execute();
 	}
 
-	updateActivity(user_id: string, activity_id: string, completed: boolean) {
+	async updateActivity(user_id: string, activity_id: string, completed: boolean) {
 		let date = null;
 		if (completed === true) {
 			date = new Date();
 		}
-		return db
+		const result = await db
 			.updateTable('activities')
 			.set({ completed: completed, completed_at: date })
 			.where('user_id', '=', user_id)
 			.where('id', '=', activity_id)
 			.returningAll()
 			.executeTakeFirst();
+		if (!result) {
+			throw new NotFoundError('Actividad no encontrada');
+		}
+		return result;
 	}
 }
 

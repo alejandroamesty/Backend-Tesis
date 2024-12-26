@@ -1,5 +1,6 @@
 import { sql } from 'kysely';
 import db from '../app/db.ts';
+import { NotFoundError } from '../utils/errors/httpErrors.ts';
 
 class UserService {
 	async getAllUsers() {
@@ -16,6 +17,7 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
+				'users.deleted_at',
 				db.fn.count('posts.id').as('posts_nu'),
 				db.fn.count('user_followers.user_follower').as('followers_nu'),
 			])
@@ -53,12 +55,11 @@ class UserService {
 			.groupBy(['users.id', 'user_emissions.id'])
 			.executeTakeFirst();
 
-		if (user) {
-			const posts = await this.getUserPosts(id, 1); // Get first 10 posts
-			return { user, posts };
+		if (!user) {
+			throw new NotFoundError('User not found');
 		}
-
-		return { user: null, posts: [] };
+		const posts = await this.getUserPosts(id, 1); // Get first 10 posts
+		return { user, posts };
 	}
 
 	async getUserByUsername(username: string) {
@@ -88,12 +89,11 @@ class UserService {
 			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 
-		if (user) {
-			const posts = await this.getUserPosts(user.id, 1); // Get first 10 posts
-			return { user, posts };
+		if (!user) {
+			throw new NotFoundError('User not found');
 		}
-
-		return { user: null, posts: [] };
+		const posts = await this.getUserPosts(user.id, 1); // Get first 10 posts
+		return { user, posts };
 	}
 
 	async getUserByEmail(email: string) {
@@ -149,7 +149,17 @@ class UserService {
 			'deleted_at',
 			'is',
 			null,
-		).execute();
+		).returning([
+			'id',
+			'fname',
+			'lname',
+			'username',
+			'email',
+			'biography',
+			'address',
+			'birth_date',
+			'image',
+		]).execute();
 	}
 
 	async updateUserEmissions(

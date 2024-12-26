@@ -10,7 +10,7 @@ userRouter
 	.get('/:id', userController.getById)
 	.get('/email/:email', userController.getByEmail)
 	.get('/username/:username', userController.getByUsername)
-	.put('/:id', userAuth, userController.update)
+	.put('/', userAuth, userController.update)
 	.delete('/', userAuth, userController.delete);
 
 export default userRouter;

@@ -1,12 +1,12 @@
 {
 	"tasks": {
 		"start": "deno run -A --env-file server.ts",
-		"dev": "deno run -A --watch --env-file server.ts",
+		"dev": "deno run -A --unstable-worker-options --watch --env-file server.ts",
 		"migrate": "deno run -A --env-file src/migrations/migrations.ts"
 	},
 
 	"imports": {
-		"@std/assert": "jsr:@std/assert@1",
+		"@std/assert": "jsr:@std/assert@1.0.10",
 		"socket.io": "https://deno.land/x/socket_io@0.2.0/mod.ts",
 		"@types/express": "npm:@types/express",
 		"express": "npm:express@4.21.1",
@@ -26,6 +26,6 @@
 	"exclude": ["node_modules", "generated", ".git", ".vscode", ".idea", "dist", "build", "out", "target"],
 
 	"compilerOptions": {
-		"types": ["./types/express.d.ts"]
+		"types": ["./src/types/express.d.ts"]
 	}
 }

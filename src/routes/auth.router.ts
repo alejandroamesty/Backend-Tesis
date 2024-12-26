@@ -4,7 +4,8 @@ import { userAuth } from '../middlewares/userAuth.ts';
 
 const authRouter = Router();
 
-authRouter.post('/register', authController.register)
+authRouter
+	.post('/register', authController.register)
 	.post('/login', authController.login)
 	.post('/forgot-password', authController.forgotPassword)
 	.post('/verify-key', authController.verifyKey)
