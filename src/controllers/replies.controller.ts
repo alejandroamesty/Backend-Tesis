@@ -21,7 +21,7 @@ class RepliesController {
 				content,
 				parentReplyId,
 			);
-			res.json({ msg: 'Comentario agregado con exito', reply });
+			res.json({ msg: 'Comentario agregado con exito', data: reply });
 		} catch (error) {
 			handleError(error, res);
 		}

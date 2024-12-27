@@ -5,7 +5,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/posts`
 	: 'http://localhost:4000/posts';
 
-Deno.test('integration: posts - posts - get posts', async () => {
+Deno.test('integration: posts - get:/ - get posts', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'GET',
@@ -18,7 +18,7 @@ Deno.test('integration: posts - posts - get posts', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - post post', async () => {
+Deno.test('integration: posts - post:/ - post post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -44,7 +44,7 @@ Deno.test('integration: posts - posts - post post', async () => {
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - invalid post post', async () => {
+Deno.test('integration: posts - post:/ - invalid post post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -60,7 +60,7 @@ Deno.test('integration: posts - posts - invalid post post', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - get post', async () => {
+Deno.test('integration: posts - get:/:id - get post', async () => {
 	const token = await getToken();
 	const postResponse = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -95,7 +95,7 @@ Deno.test('integration: posts - posts - get post', async () => {
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - invalid get post', async () => {
+Deno.test('integration: posts - get:/:id - invalid get post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/invalid-id`, {
 		method: 'GET',
@@ -108,7 +108,7 @@ Deno.test('integration: posts - posts - invalid get post', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - not found get post', async () => {
+Deno.test('integration: posts - get:/:id - not found get post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, { // Invalid UUIDj
 		method: 'GET',
@@ -121,7 +121,7 @@ Deno.test('integration: posts - posts - not found get post', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - delete post', async () => {
+Deno.test('integration: posts - delete:/:id - delete post', async () => {
 	const token = await getToken();
 	const postResponse = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -146,7 +146,7 @@ Deno.test('integration: posts - posts - delete post', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - invalid delete post', async () => {
+Deno.test('integration: posts - delete:/:id - invalid delete post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/invalid-id`, {
 		method: 'DELETE',
@@ -159,7 +159,7 @@ Deno.test('integration: posts - posts - invalid delete post', async () => {
 	const _data = await response.body?.cancel();
 });
 
-Deno.test('integration: posts - posts - not found delete post', async () => {
+Deno.test('integration: posts - delete:/:id - not found delete post', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, { // Invalid UUID
 		method: 'DELETE',

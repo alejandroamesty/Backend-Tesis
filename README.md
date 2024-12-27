@@ -56,12 +56,12 @@ deno run migrate
   where param can be the names of the modules, the name of the test type or the name of the routes itself. Examples:
 
   ```bash
-  deno test -A --filter="integrations"
-  deno test -A --filter="integrations: auth"
-  deno test -A --filter="register"
+  deno test -A --filter="integration"
+  deno test -A --filter="integration: auth"
+  deno test -A --filter="post:/register"
   deno test -A --filter="stress"
   deno test -A --filter="unit"
   ```
 
-  How it works? all of the test use a format to give them "context", the format is: {test type}: {module} - {route} - {action}
-  if you want for example a route, the filter could be ": {module} - {route}" to assure the route
+  How it works? all of the test use a format to give them "context", the format is: {test type}: {module} - {httpRequestType}:/{route} - {action}
+  if you want for example a route, the filter could be "integration: auth - post:/login - valid" to assure the route

@@ -5,7 +5,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/users`
 	: 'http://localhost:4000/users';
 
-Deno.test('integration: users - users - get user by username', async () => {
+Deno.test('integration: users - get:/username/:id - get user by username', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/username/admin`, {
 		method: 'GET',
@@ -18,7 +18,7 @@ Deno.test('integration: users - users - get user by username', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: users - users - not found get user by username', async () => {
+Deno.test('integration: users - get:/username/:id - not found get user by username', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/username/invalid`, {
 		method: 'GET',
@@ -31,7 +31,7 @@ Deno.test('integration: users - users - not found get user by username', async (
 	const _data = await response.json();
 });
 
-Deno.test('integration: users - users - get user by id', async () => {
+Deno.test('integration: users - get:/:id - get user by id', async () => {
 	const token = await getToken();
 	//get user by username, then get user by id
 	const user = await fetch(`${moduleURL}/username/admin`, {
@@ -53,7 +53,7 @@ Deno.test('integration: users - users - get user by id', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: users - users - not found get user by id', async () => {
+Deno.test('integration: users - get:/:id - not found get user by id', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'GET',
@@ -66,7 +66,7 @@ Deno.test('integration: users - users - not found get user by id', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: users - users - put user', async () => {
+Deno.test('integration: users - put:/:id - put user', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'PUT',
@@ -83,7 +83,7 @@ Deno.test('integration: users - users - put user', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: users - users - invalid put user', async () => {
+Deno.test('integration: users - put:/:id - invalid put user', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'PUT',

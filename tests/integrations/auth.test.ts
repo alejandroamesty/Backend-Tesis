@@ -4,7 +4,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/auth`
 	: 'http://localhost:4000/auth';
 
-Deno.test('integration: auth - login - valid login', async () => {
+Deno.test('integration: auth - post:/login - valid login', async () => {
 	const response = await fetch(`${moduleURL}/login`, {
 		method: 'POST',
 		headers: {
@@ -19,7 +19,7 @@ Deno.test('integration: auth - login - valid login', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - login - invalid login', async () => {
+Deno.test('integration: auth - post:/login - invalid login', async () => {
 	const response = await fetch(`${moduleURL}/login`, {
 		method: 'POST',
 		headers: {
@@ -34,7 +34,7 @@ Deno.test('integration: auth - login - invalid login', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - register - valid register', async () => {
+Deno.test('integration: auth - post:/register - valid register', async () => {
 	const response = await fetch(`${moduleURL}/register`, {
 		method: 'POST',
 		headers: {
@@ -52,7 +52,7 @@ Deno.test('integration: auth - register - valid register', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - register - duplicate register', async () => {
+Deno.test('integration: auth - post:/register - duplicate register', async () => {
 	const response = await fetch(`${moduleURL}/register`, {
 		method: 'POST',
 		headers: {
@@ -70,7 +70,7 @@ Deno.test('integration: auth - register - duplicate register', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - register - invalid register', async () => {
+Deno.test('integration: auth - post:/register - invalid register', async () => {
 	const response = await fetch(`${moduleURL}/register`, {
 		method: 'POST',
 		headers: {
@@ -102,7 +102,7 @@ Deno.test('integration: auth - unauthorized', async () => {
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - delete-account - invalid delete account', async () => {
+Deno.test('integration: auth - delete:/delete-account - invalid delete account', async () => {
 	const loginResponse = await fetch(`${moduleURL}/login`, {
 		method: 'POST',
 		headers: {
@@ -129,7 +129,7 @@ Deno.test('integration: auth - delete-account - invalid delete account', async (
 	const _data = await response.json();
 });
 
-Deno.test('integration: auth - delete-account - valid delete account', async () => {
+Deno.test('integration: auth - delete:/delete-account - valid delete account', async () => {
 	const loginResponse = await fetch(`${moduleURL}/login`, {
 		method: 'POST',
 		headers: {

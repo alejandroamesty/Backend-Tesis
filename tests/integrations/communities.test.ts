@@ -9,7 +9,7 @@ const authURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/auth`
 	: 'http://localhost:4000/auth';
 
-Deno.test('integration: communities - communities - get communities', async () => {
+Deno.test('integration: communities - get:/ - get communities', async () => {
 	const token = await getToken();
 	const response = await fetch(moduleURL, {
 		method: 'GET',
@@ -22,7 +22,7 @@ Deno.test('integration: communities - communities - get communities', async () =
 	assertEquals(response.status, 200);
 });
 
-Deno.test('integration: communities - communities - post community', async () => {
+Deno.test('integration: communities - post:/ - post community', async () => {
 	const token = await getToken();
 	const response = await fetch(moduleURL, {
 		method: 'POST',
@@ -49,7 +49,7 @@ Deno.test('integration: communities - communities - post community', async () =>
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: communities - communities - invalid post community', async () => {
+Deno.test('integration: communities - post:/ - invalid post community', async () => {
 	const token = await getToken();
 	const response = await fetch(moduleURL, {
 		method: 'POST',
@@ -65,7 +65,7 @@ Deno.test('integration: communities - communities - invalid post community', asy
 	assertEquals(response.status, 400);
 });
 
-Deno.test('integration: communities - communities - delete community', async () => {
+Deno.test('integration: communities - delete:/:id - delete community', async () => {
 	const token = await getToken();
 	// Create a community
 	const communityResponse = await fetch(moduleURL, {
@@ -93,7 +93,7 @@ Deno.test('integration: communities - communities - delete community', async () 
 	assertEquals(response.status, 200);
 });
 
-Deno.test('integration: communities - communities - not found delete community', async () => {
+Deno.test('integration: communities - delete:/:id - not found delete community', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000/`, {
 		method: 'DELETE',
@@ -106,7 +106,7 @@ Deno.test('integration: communities - communities - not found delete community',
 	assertEquals(response.status, 403);
 });
 
-Deno.test('integration: communities - communities - get community by id', async () => {
+Deno.test('integration: communities - get:/id - get community by id', async () => {
 	const token = await getToken();
 	// Create a community
 	const communityResponse = await fetch(moduleURL, {
@@ -144,7 +144,7 @@ Deno.test('integration: communities - communities - get community by id', async 
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: communities - communities - not found get community by id', async () => {
+Deno.test('integration: communities - get:/id - not found get community by id', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'GET',
@@ -157,7 +157,7 @@ Deno.test('integration: communities - communities - not found get community by i
 	assertEquals(response.status, 404);
 });
 
-Deno.test('integration: communities - communities - put community', async () => {
+Deno.test('integration: communities - put:/id - put community', async () => {
 	const token = await getToken();
 	// Create a community
 	const communityResponse = await fetch(moduleURL, {
@@ -198,7 +198,7 @@ Deno.test('integration: communities - communities - put community', async () => 
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: communities - communities - not found put community', async () => {
+Deno.test('integration: communities - put:/id - not found put community', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'PUT',
@@ -214,7 +214,7 @@ Deno.test('integration: communities - communities - not found put community', as
 	assertEquals(response.status, 403);
 });
 
-Deno.test('integration: communities - communities - post member', async () => {
+Deno.test('integration: communities - post:/:id/add - post member', async () => {
 	const token = await getToken();
 	// create community -> create user -> add user to community -> assert -> delete user -> delete community
 	// Create a community
@@ -286,7 +286,7 @@ Deno.test('integration: communities - communities - post member', async () => {
 	await deleteCommunityResponse.body?.cancel();
 });
 
-Deno.test('integration: communities - communities - not found post member', async () => {
+Deno.test('integration: communities - post:/:id/add - not found post member', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000/add`, {
 		method: 'POST',
@@ -302,7 +302,7 @@ Deno.test('integration: communities - communities - not found post member', asyn
 	assertEquals(response.status, 403);
 });
 
-Deno.test('integration: communities - communities - delete member', async () => {
+Deno.test('integration: communities - post:/:id/remove - delete member', async () => {
 	const token = await getToken();
 	// create community -> create user -> add user to community -> delete user from community -> assert -> delete user -> delete community
 	// Create a community
@@ -386,7 +386,7 @@ Deno.test('integration: communities - communities - delete member', async () => 
 	await deleteCommunityResponse.body?.cancel();
 });
 
-Deno.test('integration: communities - communities - not found delete member', async () => {
+Deno.test('integration: communities - post:/:id/remove - not found delete member', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000/remove`, {
 		method: 'DELETE',

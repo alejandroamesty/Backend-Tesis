@@ -9,7 +9,7 @@ const authURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/auth`
 	: 'http://localhost:4000/auth';
 
-Deno.test('integration: chats - chats - get chats', async () => {
+Deno.test('integration: chats - get:/ - get chats', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'GET',
@@ -22,7 +22,7 @@ Deno.test('integration: chats - chats - get chats', async () => {
 	await response.body?.cancel();
 });
 
-Deno.test('integration: chats - chats - create private chat', async () => {
+Deno.test('integration: chats - post:/private/chat - create private chat', async () => {
 	const token = await getToken();
 	//create a user
 	const userResponse = await fetch(`${authURL}/register`, {
@@ -69,7 +69,7 @@ Deno.test('integration: chats - chats - create private chat', async () => {
 	deleteUserResponse.body?.cancel();
 });
 
-Deno.test('integration: chats - chats - get chat messages', async () => {
+Deno.test('integration: chats - get:/message/:id - get chat messages', async () => {
 	const token = await getToken();
 	//create a user',
 	const userResponse = await fetch(`${authURL}/register`, {
@@ -123,7 +123,7 @@ Deno.test('integration: chats - chats - get chat messages', async () => {
 	deleteUserResponse.body?.cancel();
 });
 
-Deno.test('integration: chats - chats - insert message', async () => {
+Deno.test('integration: chats - post:/message - insert message', async () => {
 	const token = await getToken();
 	//create a user
 	const userResponse = await fetch(`${authURL}/register`, {

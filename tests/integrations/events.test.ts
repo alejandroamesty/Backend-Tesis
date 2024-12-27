@@ -9,7 +9,7 @@ const communityURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/communities`
 	: 'http://localhost:4000/communities';
 
-Deno.test('integration: events - get all events', async () => {
+Deno.test('integration: events - get:/ - get all events', async () => {
 	const token = await getToken();
 	const response = await fetch(moduleURL, {
 		method: 'GET',
@@ -21,7 +21,7 @@ Deno.test('integration: events - get all events', async () => {
 	assertEquals(response.status, 200);
 });
 
-Deno.test('integration: events - get all events from community', async () => {
+Deno.test('integration: events - get:/:id - get all events from community', async () => {
 	const token = await getToken();
 	//create a community
 	const communityResponse = await fetch(communityURL, {
@@ -59,7 +59,7 @@ Deno.test('integration: events - get all events from community', async () => {
 	await deleteResponse.body?.cancel();
 });
 
-Deno.test('integration: events - create event', async () => {
+Deno.test('integration: events - post:/:id - create event', async () => {
 	const token = await getToken();
 
 	// Create a community
@@ -113,7 +113,7 @@ Deno.test('integration: events - create event', async () => {
 	await deleteCommunityResponse.body?.cancel();
 });
 
-Deno.test('integration: events - cancel event', async () => {
+Deno.test('integration: events - delete:/id - cancel event', async () => {
 	const token = await getToken();
 	//create a community
 	const communityResponse = await fetch(communityURL, {
@@ -168,7 +168,7 @@ Deno.test('integration: events - cancel event', async () => {
 	await deleteCommunityResponse.body?.cancel();
 });
 
-Deno.test('integration: events - update event', async () => {
+Deno.test('integration: events - put:/id - update event', async () => {
 	const token = await getToken();
 
 	//create a community
@@ -238,7 +238,7 @@ Deno.test('integration: events - update event', async () => {
 	await deleteCommunityResponse.body?.cancel();
 });
 
-Deno.test('integration: events - not found cancel event', async () => {
+Deno.test('integration: events - delete:/id - not found cancel event', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'DELETE',
@@ -250,7 +250,7 @@ Deno.test('integration: events - not found cancel event', async () => {
 	assertEquals(response.status, 403);
 });
 
-Deno.test('integration: events - not found update event', async () => {
+Deno.test('integration: events - put:/id - not found update event', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'PUT',

@@ -5,7 +5,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/carbon-footprint/calculate`
 	: 'http://localhost:4000/carbon-footprint/calculate';
 
-Deno.test('integration: carbonFootprint - carbonFootprint - calculate carbon footprint', async () => {
+Deno.test('integration: carbon-footprint - post:/calculate - calculate carbon footprint', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -56,7 +56,7 @@ Deno.test('integration: carbonFootprint - carbonFootprint - calculate carbon foo
 	await response.body?.cancel();
 });
 
-Deno.test('integration: carbonFootprint - carbonFootprint - invalid calculate carbon footprint', async () => {
+Deno.test('integration: carbon-footprint - post:/calculate - invalid calculate carbon footprint', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',

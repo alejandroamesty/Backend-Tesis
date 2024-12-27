@@ -4,7 +4,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/activities`
 	: 'http://localhost:4000/activities';
 
-Deno.test('integration: activities - get all activities', async () => {
+Deno.test('integration: activities - get:/ - valid get activities', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'GET',
@@ -17,7 +17,7 @@ Deno.test('integration: activities - get all activities', async () => {
 	await response.body?.cancel();
 });
 
-Deno.test('integration: activities - post activity', async () => {
+Deno.test('integration: activities - post:/ - post activity', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -26,14 +26,14 @@ Deno.test('integration: activities - post activity', async () => {
 			'Authorization': `Bearer ${token}`,
 		},
 		body: JSON.stringify({
-			activity_description: 'Some Activity',
+			activity_description: ['Some Activity'],
 		}),
 	});
 	assertEquals(response.status, 201);
 	await response.body?.cancel();
 });
 
-Deno.test('integration: activities - invalid post activity', async () => {
+Deno.test('integration: activities - post:/ - invalid post activity', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'POST',
@@ -49,7 +49,7 @@ Deno.test('integration: activities - invalid post activity', async () => {
 	await response.body?.cancel();
 });
 
-Deno.test('integration: activities - not found update activity', async () => {
+Deno.test('integration: activities - put:/ - not found update activity', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'PUT',
@@ -65,7 +65,7 @@ Deno.test('integration: activities - not found update activity', async () => {
 	await response.body?.cancel();
 });
 
-Deno.test('integration: activities - invalid update activity', async () => {
+Deno.test('integration: activities - put:/ - invalid update activity', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/00000000-0000-200a-a000-000000000000`, {
 		method: 'PUT',
@@ -81,7 +81,7 @@ Deno.test('integration: activities - invalid update activity', async () => {
 	await response.body?.cancel();
 });
 
-Deno.test('integration: activities - update activity', async () => {
+Deno.test('integration: activities - put:/ - update activity', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}/`, {
 		method: 'GET',
@@ -91,7 +91,7 @@ Deno.test('integration: activities - update activity', async () => {
 		},
 	});
 	const activities = await response.json();
-	const activity_id = activities.data[0].activity_id;
+	const activity_id = activities.data[0].id;
 	const response2 = await fetch(`${moduleURL}/${activity_id}`, {
 		method: 'PUT',
 		headers: {

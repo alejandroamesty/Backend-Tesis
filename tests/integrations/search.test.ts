@@ -5,7 +5,7 @@ const moduleURL = Deno.env.get('BASE_URL')
 	? `${Deno.env.get('BASE_URL')}/search`
 	: 'http://localhost:4000/search';
 
-Deno.test('integration: search - search - get search', async () => {
+Deno.test('integration: search - get:/ - get search', async () => {
 	const token = await getToken();
 	const response = await fetch(`${moduleURL}?parameter=test&page=1`, {
 		method: 'GET',
