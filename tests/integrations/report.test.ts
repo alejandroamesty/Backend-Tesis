@@ -29,7 +29,7 @@ Deno.test('integration: reports - post:/ - post report', async () => {
 	assertEquals(reportResponse.status, 200);
 
 	// delete report
-	const deleteResponse = await fetch(`${moduleURL}/${data.post.id}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${data.post.post_id}`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -61,9 +61,10 @@ Deno.test('integration: reports - delete:/:id - delete report', async () => {
 	});
 
 	const { data } = await reportResponse.json();
+	console.log(data);
 
 	// delete report
-	const deleteResponse = await fetch(`${moduleURL}/${data.post.id}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${data.post.post_id}`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
