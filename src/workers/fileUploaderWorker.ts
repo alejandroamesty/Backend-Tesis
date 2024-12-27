@@ -2,6 +2,14 @@ import MIME_TYPES from '../types/types.ts';
 
 const STATIC_DIR = './public';
 
+// List of allowed origins
+const allowedOrigins = [
+	'http://localhost',
+	'http://localhost:8100',
+	'http://localhost:8101',
+	'capacitor://localhost',
+];
+
 const ensureDirectoryExists = async (dir: string) => {
 	try {
 		await Deno.mkdir(dir, { recursive: true });
@@ -12,17 +20,29 @@ const ensureDirectoryExists = async (dir: string) => {
 	}
 };
 
-const corsHeaders = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+// CORS headers
+const corsHeaders = (origin: string): Record<string, string> => {
+	// Return default CORS headers if the origin is allowed, else return empty headers
+	if (allowedOrigins.includes(origin)) {
+		return {
+			'Access-Control-Allow-Origin': origin, // Set allowed origin dynamically
+			'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+			'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+		};
+	} else {
+		// Return an empty object if the origin is not allowed
+		return {};
+	}
 };
 
 const handler = async (request: Request): Promise<Response> => {
+	const origin = request.headers.get('Origin') || ''; // Get the origin from the request
+
+	// Handle OPTIONS request for pre-flight CORS request
 	if (request.method === 'OPTIONS') {
 		return new Response(null, {
 			status: 204,
-			headers: corsHeaders,
+			headers: corsHeaders(origin), // Set CORS headers dynamically based on the origin
 		});
 	}
 
@@ -33,10 +53,11 @@ const handler = async (request: Request): Promise<Response> => {
 		const files = formData.getAll('file') as File[];
 		const newFiles: string[] = [];
 		const errors: unknown[] = [];
+
 		if (!files.length) {
 			return new Response('No files found in request', {
 				status: 400,
-				headers: { 'Access-Control-Allow-Origin': '*' },
+				headers: corsHeaders(origin), // Set CORS headers dynamically
 			});
 		}
 
@@ -47,11 +68,11 @@ const handler = async (request: Request): Promise<Response> => {
 				if (!Object.values(MIME_TYPES).includes(fileType)) {
 					return new Response('Unsupported file type', {
 						status: 400,
-						headers: { 'Access-Control-Allow-Origin': '*' },
+						headers: corsHeaders(origin), // Set CORS headers dynamically
 					});
 				}
 
-				// Generate a unique file name with proper extension
+				// Generate a unique file name with the proper extension
 				const extension = Object.keys(MIME_TYPES).find((key) =>
 					MIME_TYPES[key] === fileType
 				) || '';
@@ -76,14 +97,14 @@ const handler = async (request: Request): Promise<Response> => {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/json',
-				'Access-Control-Allow-Origin': '*',
+				...corsHeaders(origin), // Set CORS headers dynamically
 			},
 		});
 	} catch (error) {
 		console.log(error);
 		return new Response('Error uploading file', {
 			status: 500,
-			headers: { 'Access-Control-Allow-Origin': '*' },
+			headers: corsHeaders(origin), // Set CORS headers dynamically
 		});
 	}
 };
