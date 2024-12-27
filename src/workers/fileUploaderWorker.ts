@@ -12,8 +12,23 @@ const ensureDirectoryExists = async (dir: string) => {
 	}
 };
 
+// Agregar los encabezados CORS
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*', // Permitir todas las IPs
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', // Métodos permitidos
+	'Access-Control-Allow-Headers': 'Content-Type', // Encabezados permitidos
+};
+
 const handler = async (request: Request): Promise<Response> => {
 	try {
+		// Si la solicitud es un preflight (OPTIONS), respondemos solo con los encabezados
+		if (request.method === 'OPTIONS') {
+			return new Response('', {
+				status: 204,
+				headers: corsHeaders,
+			});
+		}
+
 		await ensureDirectoryExists(STATIC_DIR);
 
 		const formData = await request.formData();
@@ -21,7 +36,7 @@ const handler = async (request: Request): Promise<Response> => {
 		const newFiles: string[] = [];
 		const errors: unknown[] = [];
 		if (!files.length) {
-			return new Response('No files found in request', { status: 400 });
+			return new Response('No files found in request', { status: 400, headers: corsHeaders });
 		}
 
 		for (const file of files) {
@@ -29,14 +44,16 @@ const handler = async (request: Request): Promise<Response> => {
 				// Validate MIME type
 				const fileType = file.type; // Get the file's MIME type
 				if (!Object.values(MIME_TYPES).includes(fileType)) {
-					return new Response('Unsupported file type', { status: 400 });
+					return new Response('Unsupported file type', {
+						status: 400,
+						headers: corsHeaders,
+					});
 				}
 
 				// Generate a unique file name with proper extension
 				const extension = Object.keys(MIME_TYPES).find((key) =>
 					MIME_TYPES[key] === fileType
-				) ||
-					'';
+				) || '';
 
 				const fileName = `${crypto.randomUUID()}${extension}`;
 
@@ -56,11 +73,14 @@ const handler = async (request: Request): Promise<Response> => {
 
 		return new Response(responseBody, {
 			status: 200,
-			headers: { 'Content-Type': 'application/json' },
+			headers: {
+				'Content-Type': 'application/json',
+				...corsHeaders, // Agregar encabezados CORS a la respuesta
+			},
 		});
 	} catch (error) {
 		console.log(error);
-		return new Response('Error uploading file', { status: 500 });
+		return new Response('Error uploading file', { status: 500, headers: { ...corsHeaders } });
 	}
 };
 
