@@ -35,6 +35,11 @@ class ReportService {
 				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
 			])
 			.where('posts.id', '=', id)
+			.where(
+				'posts.category_id',
+				'=',
+				categoriesService.getCategoryByName('Report')?.id || '',
+			)
 			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
 			.executeTakeFirst();
 
@@ -81,6 +86,11 @@ class ReportService {
 			])
 			.where('categories.name', '=', 'Report')
 			.where('posts.post_date', '>=', dateLimit)
+			.where(
+				'posts.category_id',
+				'=',
+				categoriesService.getCategoryByName('Report')?.id || '',
+			)
 			.having(
 				sql`(
 					6371 * 2 * ASIN(SQRT(

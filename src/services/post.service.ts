@@ -108,7 +108,7 @@ class PostService {
 				.where('posts.user_id', '!=', userId)
 				.where(
 					'posts.category_id',
-					'!=',
+					'=',
 					categoriesService.getCategoryByName('Post')?.id || '',
 				)
 				.orderBy('posts.post_date', 'desc')
@@ -158,7 +158,7 @@ class PostService {
 				)
 				.where(
 					'posts.category_id',
-					'!=',
+					'=',
 					categoriesService.getCategoryByName('Post')?.id || '',
 				)
 				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])

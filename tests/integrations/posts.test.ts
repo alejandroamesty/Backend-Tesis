@@ -74,7 +74,7 @@ Deno.test('integration: posts - posts - get post', async () => {
 		}),
 	});
 	const { data } = await postResponse.json();
-	const response = await fetch(`${moduleURL}/${data}`, {
+	const response = await fetch(`${moduleURL}/${data.post.id}`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ Deno.test('integration: posts - posts - get post', async () => {
 	const _data = await response.body?.cancel();
 
 	//delete post
-	const deleteResponse = await fetch(`${moduleURL}/${data}`, {
+	const deleteResponse = await fetch(`${moduleURL}/${data.post.id}`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ Deno.test('integration: posts - posts - delete post', async () => {
 		}),
 	});
 	const { data } = await postResponse.json();
-	const response = await fetch(`${moduleURL}/${data}`, {
+	const response = await fetch(`${moduleURL}/${data.post.id}`, {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
