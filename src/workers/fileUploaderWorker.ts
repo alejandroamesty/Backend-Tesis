@@ -12,24 +12,21 @@ const ensureDirectoryExists = async (dir: string) => {
 	}
 };
 
-// Agregar los encabezados CORS
 const corsHeaders = {
-	'Access-Control-Allow-Origin':
-		'http://localhost:8100, http://localhost, capacitor://localhost, ionic://localhost, http://localhost:8101',
-	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', // Métodos permitidos
-	'Access-Control-Allow-Headers': 'Content-Type', // Encabezados permitidos
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 const handler = async (request: Request): Promise<Response> => {
-	try {
-		// Si la solicitud es un preflight (OPTIONS), respondemos solo con los encabezados
-		if (request.method === 'OPTIONS') {
-			return new Response('', {
-				status: 204,
-				headers: corsHeaders,
-			});
-		}
+	if (request.method === 'OPTIONS') {
+		return new Response(null, {
+			status: 204,
+			headers: corsHeaders,
+		});
+	}
 
+	try {
 		await ensureDirectoryExists(STATIC_DIR);
 
 		const formData = await request.formData();
@@ -37,7 +34,10 @@ const handler = async (request: Request): Promise<Response> => {
 		const newFiles: string[] = [];
 		const errors: unknown[] = [];
 		if (!files.length) {
-			return new Response('No files found in request', { status: 400, headers: corsHeaders });
+			return new Response('No files found in request', {
+				status: 400,
+				headers: { 'Access-Control-Allow-Origin': '*' },
+			});
 		}
 
 		for (const file of files) {
@@ -47,7 +47,7 @@ const handler = async (request: Request): Promise<Response> => {
 				if (!Object.values(MIME_TYPES).includes(fileType)) {
 					return new Response('Unsupported file type', {
 						status: 400,
-						headers: corsHeaders,
+						headers: { 'Access-Control-Allow-Origin': '*' },
 					});
 				}
 
@@ -76,20 +76,28 @@ const handler = async (request: Request): Promise<Response> => {
 			status: 200,
 			headers: {
 				'Content-Type': 'application/json',
-				...corsHeaders, // Agregar encabezados CORS a la respuesta
+				'Access-Control-Allow-Origin': '*',
 			},
 		});
 	} catch (error) {
 		console.log(error);
-		return new Response('Error uploading file', { status: 500, headers: { ...corsHeaders } });
+		return new Response('Error uploading file', {
+			status: 500,
+			headers: { 'Access-Control-Allow-Origin': '*' },
+		});
 	}
 };
 
-Deno.serve({
-	port: Number(Deno.env.get('FILE_UPLOADER_PORT')),
-	onListen() {
-		console.log(
-			`Upload file server running on http://localhost:${Deno.env.get('FILE_UPLOADER_PORT')}/`,
-		);
+Deno.serve(
+	{
+		port: Number(Deno.env.get('FILE_UPLOADER_PORT')),
+		onListen() {
+			console.log(
+				`Upload file server running on http://localhost:${
+					Deno.env.get('FILE_UPLOADER_PORT')
+				}/`,
+			);
+		},
 	},
-}, handler);
+	handler,
+);
