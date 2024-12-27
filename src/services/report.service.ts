@@ -40,7 +40,7 @@ class ReportService {
 				'=',
 				categoriesService.getCategoryByName('Report')?.id || '',
 			)
-			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
+			.groupBy(['posts.id', 'coordinates.id', 'users.id', 'post_likes.user_id'])
 			.executeTakeFirst();
 
 		return report;
@@ -103,7 +103,7 @@ class ReportService {
 				radius,
 			)
 			.orderBy('distance', 'asc')
-			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
+			.groupBy(['posts.id', 'coordinates.id', 'users.id', 'post_likes.user_id'])
 			.execute();
 
 		return results;
