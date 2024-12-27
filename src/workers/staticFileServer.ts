@@ -1,8 +1,23 @@
 import { extname, fromFileUrl } from 'https://deno.land/std/path/mod.ts';
 import MIME_TYPES from '../types/types.ts';
+
 const STATIC_DIR = '../../public';
 
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*', // Permite el acceso desde cualquier origen
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 const handler = async (request: Request): Promise<Response> => {
+	// Maneja las solicitudes OPTIONS para cumplir con los requisitos de CORS
+	if (request.method === 'OPTIONS') {
+		return new Response(null, {
+			status: 204,
+			headers: corsHeaders,
+		});
+	}
+
 	const url = new URL(request.url);
 	const filePath = fromFileUrl(new URL(STATIC_DIR + url.pathname, import.meta.url));
 
@@ -13,15 +28,29 @@ const handler = async (request: Request): Promise<Response> => {
 			const contentType = MIME_TYPES[extname(filePath)];
 			if (!contentType) {
 				console.log('404: Not Found');
-				return new Response('404: Not Found', { status: 404 });
+				return new Response('404: Not Found', {
+					status: 404,
+					headers: corsHeaders,
+				});
 			}
-			return new Response(file, { headers: { 'Content-Type': contentType } });
+			return new Response(file, {
+				headers: {
+					'Content-Type': contentType,
+					...corsHeaders, // Añade los encabezados CORS
+				},
+			});
 		}
 		console.log('404: Not Found');
-		return new Response('404: Not Found', { status: 404 });
+		return new Response('404: Not Found', {
+			status: 404,
+			headers: corsHeaders, // Añade los encabezados CORS
+		});
 	} catch (error) {
 		console.log(error);
-		return new Response('404: Not Found', { status: 404 });
+		return new Response('404: Not Found', {
+			status: 404,
+			headers: corsHeaders, // Añade los encabezados CORS
+		});
 	}
 };
 
