@@ -61,7 +61,6 @@ Deno.test('integration: reports - delete:/:id - delete report', async () => {
 	});
 
 	const { data } = await reportResponse.json();
-	console.log(data);
 
 	// delete report
 	const deleteResponse = await fetch(`${moduleURL}/${data.post.post_id}`, {
