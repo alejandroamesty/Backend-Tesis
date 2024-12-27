@@ -84,6 +84,10 @@ class PostService {
 				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
 				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
 				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+				.leftJoin('post_likes', (join) =>
+					join
+						.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+						.on('post_likes.user_id', '=', sql`${userId}`))
 				.select([
 					'posts.id',
 					'posts.caption',
@@ -98,6 +102,7 @@ class PostService {
 					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
 					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
 					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+					sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
 				])
 				.where('user_followers.user_follower', '=', userId)
 				.where('posts.user_id', '!=', userId)
@@ -107,7 +112,7 @@ class PostService {
 					categoriesService.getCategoryByName('Post')?.id || '',
 				)
 				.orderBy('posts.post_date', 'desc')
-				.groupBy(['posts.id', 'users.id'])
+				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
 				.limit(Math.ceil(limit * 0.6) + bufferSize)
 				.execute();
 
@@ -118,6 +123,10 @@ class PostService {
 				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
 				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
 				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+				.leftJoin('post_likes', (join) =>
+					join
+						.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+						.on('post_likes.user_id', '=', sql`${userId}`))
 				.select([
 					'posts.id',
 					'posts.caption',
@@ -133,6 +142,7 @@ class PostService {
 					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
 					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
 					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+					sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
 				])
 				.where('posts.user_id', '!=', userId)
 				.where((eb) =>
@@ -151,7 +161,7 @@ class PostService {
 					'!=',
 					categoriesService.getCategoryByName('Post')?.id || '',
 				)
-				.groupBy(['posts.id', 'users.id'])
+				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
 				.orderBy('engagement_score', 'desc')
 				.orderBy('posts.post_date', 'desc')
 				.limit(Math.ceil(limit * 0.4) + bufferSize)
@@ -167,7 +177,7 @@ class PostService {
 		});
 	}
 
-	async getPost(id: string) {
+	async getPost(id: string, user_id: string) {
 		const rows = await db
 			.selectFrom('posts')
 			.leftJoin('users', 'posts.user_id', 'users.id')
@@ -183,6 +193,10 @@ class PostService {
 				'nested_replies.parent_reply_id',
 			)
 			.leftJoin('users as nested_users', 'nested_replies.user_id', 'nested_users.id')
+			.leftJoin('post_likes', (join) =>
+				join
+					.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+					.on('post_likes.user_id', '=', sql`${user_id}`))
 			.where('posts.id', '=', id)
 			.select([
 				// Main post fields
@@ -222,6 +236,24 @@ class PostService {
 				'nested_replies.created_at as nestedReplyCreatedAt',
 				'nested_users.username as nestedReplyUserUsername',
 				'nested_users.image as nestedReplyUserImage',
+
+				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
+			])
+			.groupBy([
+				'posts.id',
+				'users.id',
+				'post_likes.user_id',
+				'replies.id',
+				'nested_replies.id',
+				'coordinates.x',
+				'coordinates.y',
+				'post_categories.name',
+				'post_images.image',
+				'post_videos.video',
+				'reply_users.username',
+				'reply_users.image',
+				'nested_users.username',
+				'nested_users.image',
 			])
 			.execute();
 
@@ -234,6 +266,7 @@ class PostService {
 			content,
 			post_date,
 			likes,
+			user_liked,
 			userId,
 			userUsername,
 			userFname,
@@ -321,6 +354,7 @@ class PostService {
 				images,
 				videos,
 				post_date,
+				user_liked,
 				likes,
 				replies_nu,
 				replies,

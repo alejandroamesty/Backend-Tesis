@@ -6,7 +6,7 @@ const postRouter = Router();
 
 postRouter
 	.get('/', userAuth, postController.getPosts)
-	.get('/:id', postController.getPost)
+	.get('/:id', userAuth, postController.getPost)
 	.post('/', userAuth, postController.createPost)
 	.delete('/:id', userAuth, postController.deletePost);
 

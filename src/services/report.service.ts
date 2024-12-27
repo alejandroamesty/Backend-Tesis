@@ -12,6 +12,10 @@ class ReportService {
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
 			.innerJoin('users', 'posts.user_id', 'users.id')
+			.leftJoin('post_likes', (join) =>
+				join
+					.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+					.on('post_likes.user_id', '=', sql`CAST(users.id AS UUID)`))
 			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
 			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 			.select([
@@ -28,6 +32,7 @@ class ReportService {
 				'coordinates.y',
 				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
 				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
 			])
 			.where('posts.id', '=', id)
 			.groupBy(['posts.id', 'coordinates.id', 'users.id'])
@@ -45,6 +50,10 @@ class ReportService {
 			.innerJoin('users', 'posts.user_id', 'users.id')
 			.innerJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.innerJoin('post_categories as categories', 'posts.category_id', 'categories.id')
+			.leftJoin('post_likes', (join) =>
+				join
+					.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+					.on('post_likes.user_id', '=', sql`CAST(users.id AS UUID)`))
 			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
 			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
 			.select([
@@ -68,6 +77,7 @@ class ReportService {
 						POWER(SIN((radians(${location.x}) - radians(coordinates.x)) / 2), 2)
 					))
 				)`.as('distance'),
+				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
 			])
 			.where('categories.name', '=', 'Report')
 			.where('posts.post_date', '>=', dateLimit)

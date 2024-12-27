@@ -31,9 +31,15 @@ class PostController {
 
 	async getPost(req: Request, res: Response) {
 		try {
+			const userId = req.user;
 			const id = req.params.id;
-			verifyTypes({ value: id, type: 'uuid' });
-			const post = await postService.getPost(id);
+
+			if (!userId) {
+				throw new UnauthorizedError('Usuario no encontrado');
+			}
+
+			verifyTypes({ value: [id, userId], type: 'uuid' });
+			const post = await postService.getPost(id, userId);
 			if (!post) throw new NotFoundError('Post no encontrado');
 
 			const response = {
