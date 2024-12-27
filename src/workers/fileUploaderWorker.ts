@@ -14,7 +14,8 @@ const ensureDirectoryExists = async (dir: string) => {
 
 // Agregar los encabezados CORS
 const corsHeaders = {
-	'Access-Control-Allow-Origin': '*', // Permitir todas las IPs
+	'Access-Control-Allow-Origin':
+		'http://localhost:8100, http://localhost, capacitor://localhost, ionic://localhost, http://localhost:8101',
 	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', // Métodos permitidos
 	'Access-Control-Allow-Headers': 'Content-Type', // Encabezados permitidos
 };
