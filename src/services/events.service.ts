@@ -18,7 +18,14 @@ class EventsService {
 			const communityIds = await trx
 				.selectFrom('communities')
 				.where('chat_id', 'in', userChats.map((chat) => chat.chat_id))
-				.select(['id'])
+				.select([
+					'id',
+					'name',
+					'image',
+					'owner_id',
+					'private_community',
+					'description',
+				])
 				.execute();
 
 			if (!communityIds.length) {
@@ -33,6 +40,7 @@ class EventsService {
 				.select([
 					'e.id',
 					'e.name',
+					'community_id',
 					'e.description',
 					'e.event_date',
 					'e.event_location',
@@ -42,7 +50,25 @@ class EventsService {
 				])
 				.execute();
 
-			return events;
+			// Map events to include community data
+			const eventsWithCommunities = events.map((event) => {
+				const community = communityIds.find((com) => com.id === event.community_id);
+				return {
+					...event,
+					community: community
+						? {
+							id: community.id,
+							name: community.name,
+							image: community.image,
+							owner_id: community.owner_id,
+							private_community: community.private_community,
+							description: community.description,
+						}
+						: null,
+				};
+			});
+
+			return eventsWithCommunities;
 		});
 	}
 

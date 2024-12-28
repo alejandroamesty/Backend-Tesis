@@ -17,6 +17,22 @@ class EventsController {
 			const now = new Date();
 			const newEvents = events.map((event) => {
 				const eventDate = new Date(event.event_date);
+				if (event.community) {
+					return {
+						id: event.id,
+						name: event.name,
+						description: event.description,
+						event_date: eventDate,
+						event_location: {
+							x: event.x,
+							y: event.y,
+						},
+						is_past: event.event_date < now,
+						cancelled: event.cancelled,
+						community: event.community,
+					};
+				}
+
 				return {
 					id: event.id,
 					name: event.name,
