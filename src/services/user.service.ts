@@ -49,8 +49,8 @@ class UserService {
 				'user_emissions.other_emissions',
 				'user_emissions.created_at',
 				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_id').as('following_nu'),
-				sql<number>`COUNT(followers.user_id)`.as('followers_nu'),
+				db.fn.count('user_followers.user_id').as('followers_nu'),
+				sql<number>`COUNT(followers.user_id)`.as('following_nu'),
 			])
 			.groupBy(['users.id', 'user_emissions.id'])
 			.executeTakeFirst();
@@ -84,7 +84,8 @@ class UserService {
 				'user_emissions.other_emissions',
 				'user_emissions.created_at',
 				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_follower').as('followers_nu'),
+				db.fn.count('user_followers.user_id').as('followers_nu'),
+				sql<number>`COUNT(user_followers.user_follower)`.as('following_nu'),
 			])
 			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
@@ -118,7 +119,8 @@ class UserService {
 				'user_emissions.other_emissions',
 				'user_emissions.created_at',
 				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_follower').as('followers_nu'),
+				db.fn.count('user_followers.user_id').as('followers_nu'),
+				sql<number>`COUNT(user_followers.user_follower)`.as('following_nu'),
 			])
 			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();

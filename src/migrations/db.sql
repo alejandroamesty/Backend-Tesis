@@ -209,7 +209,7 @@ CREATE TABLE "public".chat_messages (
 CREATE TABLE "public".communities (
 	id uuid DEFAULT uuid_generate_v4 () NOT NULL,
 	owner_id uuid NOT NULL,
-	chat_id uuid NOT NULL,
+	chat_id uuid NOT NULL UNIQUE,
 	image text,
 	name text NOT NULL,
 	description text,
