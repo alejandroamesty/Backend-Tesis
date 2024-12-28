@@ -4,20 +4,32 @@ import { ForbiddenError, NotFoundError } from '../utils/errors/httpErrors.ts';
 class EventsService {
 	async getAll(user_id: string) {
 		return await db.transaction().execute(async (trx) => {
-			const communities = await trx
+			const userChats = await trx
 				.selectFrom('chat_members')
 				.where('user_id', '=', user_id)
 				.select(['chat_id'])
 				.execute();
 
-			if (!communities.length) {
+			if (!userChats.length) {
 				return [];
 			}
 
+			// Fetch communities linked to the user's chats
+			const communityIds = await trx
+				.selectFrom('communities')
+				.where('chat_id', 'in', userChats.map((chat) => chat.chat_id))
+				.select(['id'])
+				.execute();
+
+			if (!communityIds.length) {
+				return [];
+			}
+
+			// Fetch events for these communities
 			const events = await trx
 				.selectFrom('events as e')
 				.leftJoin('coordinates as c', 'e.event_location', 'c.id')
-				.where('community_id', 'in', communities.map((c) => c.chat_id))
+				.where('community_id', 'in', communityIds.map((community) => community.id))
 				.select([
 					'e.id',
 					'e.name',
