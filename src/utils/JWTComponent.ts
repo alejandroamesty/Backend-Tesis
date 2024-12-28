@@ -4,7 +4,7 @@ import { ExpiredTokenError } from './errors/httpErrors.ts';
 // Create a CryptoKey from a string secret
 const jwtSecret = await crypto.subtle.importKey(
 	'raw',
-	new TextEncoder().encode(Deno.env.get('JWT_SECRET') || ''),
+	new TextEncoder().encode(Deno.env.get('JWT_SECRET') || 'secret'),
 	{ name: 'HMAC', hash: 'SHA-512' },
 	false,
 	['sign', 'verify'],
@@ -39,7 +39,7 @@ export async function verifyToken(token: string): Promise<Record<string, unknown
 		if (err instanceof Error && err.message === 'The jwt is expired.') {
 			throw new ExpiredTokenError(err.message);
 		}
-		console.error('Invalid token:', err);
+		//console.error('Invalid token:', err);
 		return null;
 	}
 }

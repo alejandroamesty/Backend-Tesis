@@ -1,4 +1,4 @@
-import { crypto } from 'https://deno.land/std/crypto/mod.ts';
+import { crypto } from 'jsr:@std/crypto';
 
 const baseSaltLength = 16;
 
