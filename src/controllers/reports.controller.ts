@@ -11,13 +11,14 @@ class ReportController {
 		const user = req.user;
 		const x = Number(req.query.x);
 		const y = Number(req.query.y);
+		const radius = Number(req.query.radius) || 1;
 		try {
 			verifyTypes([
-				{ value: [x, y], type: 'number' },
+				{ value: [x, y, radius], type: 'number' },
 				{ value: user, type: 'uuid' },
 			]);
 
-			const reports = await reportService.getReports({ x, y }, 1, 1);
+			const reports = await reportService.getReports({ x, y }, radius, 1);
 
 			res.json({
 				msg: 'Data encontrada con exito',
