@@ -177,6 +177,115 @@ class PostService {
 		});
 	}
 
+	async getFollowedPosts(userId: string, page: number = 1, limit: number = 10) {
+		const offset = (page - 1) * limit;
+		const bufferSize = Math.ceil(limit * 0.4);
+
+		const followedPosts = await db
+			.selectFrom('posts')
+			.innerJoin('users', 'users.id', 'posts.user_id')
+			.innerJoin('user_followers', 'user_followers.user_id', 'posts.user_id')
+			.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
+			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+			.leftJoin('post_likes', (join) =>
+				join
+					.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+					.on('post_likes.user_id', '=', sql`${userId}`))
+			.select([
+				'posts.id',
+				'posts.caption',
+				'posts.content',
+				'posts.post_date',
+				'posts.likes',
+				'users.id as userId',
+				'users.username',
+				'users.fname',
+				'users.lname',
+				'users.image',
+				sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
+				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
+			])
+			.where('user_followers.user_follower', '=', userId)
+			.where('posts.user_id', '!=', userId)
+			.where(
+				'posts.category_id',
+				'=',
+				categoriesService.getCategoryByName('Post')?.id || '',
+			)
+			.orderBy('posts.post_date', 'desc')
+			.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
+			.limit(Math.ceil(limit * 0.6) + bufferSize)
+			.execute();
+
+		const paginatedPosts = followedPosts.slice(offset, offset + limit);
+
+		return paginatedPosts;
+	}
+
+	async getPopularPosts(userId: string, page: number = 1, limit: number = 10) {
+		const offset = (page - 1) * limit;
+		const bufferSize = Math.ceil(limit * 0.4);
+		const popularPosts = await db.transaction().execute(async (trx) => {
+			const popularPosts = await trx
+				.selectFrom('posts')
+				.innerJoin('users', 'users.id', 'posts.user_id')
+				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
+				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
+				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+				.leftJoin('post_likes', (join) =>
+					join
+						.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
+						.on('post_likes.user_id', '=', sql`${userId}`))
+				.select([
+					'posts.id',
+					'posts.caption',
+					'posts.content',
+					'posts.post_date',
+					'posts.likes',
+					'users.id as userId',
+					'users.username',
+					'users.fname',
+					'users.lname',
+					'users.image',
+					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
+					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
+					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+					sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
+				])
+				.where('posts.user_id', '!=', userId)
+				.where((eb) =>
+					eb.not(
+						eb.exists(
+							trx
+								.selectFrom('user_followers')
+								.select('user_followers.user_id')
+								.where(sql`user_followers.user_id`, '=', sql`posts.user_id`)
+								.where('user_followers.user_follower', '=', userId),
+						),
+					)
+				)
+				.where(
+					'posts.category_id',
+					'=',
+					categoriesService.getCategoryByName('Post')?.id || '',
+				)
+				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
+				.orderBy('engagement_score', 'desc')
+				.orderBy('posts.post_date', 'desc')
+				.limit(Math.ceil(limit * 0.4) + bufferSize)
+				.execute();
+			const paginatedPosts = popularPosts.slice(offset, offset + limit);
+
+			return paginatedPosts;
+		});
+
+		return popularPosts;
+	}
+
 	async getPost(id: string, user_id: string) {
 		const rows = await db
 			.selectFrom('posts')

@@ -29,6 +29,50 @@ class PostController {
 		}
 	}
 
+	async getFollowigPosts(req: Request, res: Response) {
+		const user = req.user;
+		const page = isNaN(Number(req.query.page)) ? undefined : Number(req.query.page);
+		try {
+			verifyTypes([
+				{ value: page, type: 'number', optional: true },
+				{ value: user, type: 'uuid' },
+			]);
+			if (page && page < 1) {
+				throw new BadRequestError('El numero de pagina debe ser mayor a 0');
+			}
+			const posts = await postService.getFollowedPosts(user as string, page ?? undefined);
+
+			res.json({
+				msg: 'Data encontrada con exito',
+				data: posts,
+			});
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
+	async getPopularPosts(req: Request, res: Response) {
+		const user = req.user;
+		const page = isNaN(Number(req.query.page)) ? undefined : Number(req.query.page);
+		try {
+			verifyTypes([
+				{ value: page, type: 'number', optional: true },
+				{ value: user, type: 'uuid' },
+			]);
+			if (page && page < 1) {
+				throw new BadRequestError('El numero de pagina debe ser mayor a 0');
+			}
+			const posts = await postService.getPopularPosts(user as string, page ?? undefined);
+
+			res.json({
+				msg: 'Data encontrada con exito',
+				data: posts,
+			});
+		} catch (error) {
+			handleError(error, res);
+		}
+	}
+
 	async getPost(req: Request, res: Response) {
 		try {
 			const userId = req.user;
