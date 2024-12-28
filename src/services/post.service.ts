@@ -179,7 +179,6 @@ class PostService {
 
 	async getFollowedPosts(userId: string, page: number = 1, limit: number = 10) {
 		const offset = (page - 1) * limit;
-		const bufferSize = Math.ceil(limit * 0.4);
 
 		const followedPosts = await db
 			.selectFrom('posts')
@@ -217,7 +216,7 @@ class PostService {
 			)
 			.orderBy('posts.post_date', 'desc')
 			.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
-			.limit(Math.ceil(limit * 0.6) + bufferSize)
+			.limit(limit)
 			.execute();
 
 		const paginatedPosts = followedPosts.slice(offset, offset + limit);
@@ -227,7 +226,7 @@ class PostService {
 
 	async getPopularPosts(userId: string, page: number = 1, limit: number = 10) {
 		const offset = (page - 1) * limit;
-		const bufferSize = Math.ceil(limit * 0.4);
+
 		const popularPosts = await db.transaction().execute(async (trx) => {
 			const popularPosts = await trx
 				.selectFrom('posts')
@@ -276,7 +275,7 @@ class PostService {
 				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
 				.orderBy('engagement_score', 'desc')
 				.orderBy('posts.post_date', 'desc')
-				.limit(Math.ceil(limit * 0.4) + bufferSize)
+				.limit(limit)
 				.execute();
 			const paginatedPosts = popularPosts.slice(offset, offset + limit);
 
