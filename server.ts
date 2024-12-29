@@ -1,7 +1,8 @@
 import startWorkers from './src/workers/workerSpawner.ts';
 import startLoadBalancer from './src/workers/loadBalancer.ts';
 
-const mainServers = Number(Deno.env.get('WORKERS')) || navigator.hardwareConcurrency - 4;
+const mainServers = Number(Deno.env.get('WORKERS')) || navigator.hardwareConcurrency - 5;
+// 5 cores for the load balancer, static file server, file uploader worker and socket server worker
 
 startWorkers(8000, mainServers < 1 ? 1 : mainServers);
 
