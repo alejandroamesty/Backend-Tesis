@@ -4,6 +4,7 @@ import { verifyTypes } from '../../utils/typeChecker.ts';
 import verifyChatMember from '../../services/verifyChatMember.service.ts';
 import connectedSockets from '../connectedSockets.ts';
 import { socketHandleError } from '../socketErrorHandler.ts';
+import { ForbiddenError } from '../../utils/errors/httpErrors.ts';
 
 export default function messageHandler(
 	_io: Io,
@@ -26,7 +27,7 @@ export default function messageHandler(
 			const chatMember = await verifyChatMember(user_id, chatId);
 
 			if (!chatMember) {
-				throw new Error('You are not a member of this chat');
+				throw new ForbiddenError('You are not a member of this chat');
 			}
 
 			await chatService.insertMessage(chatId, user_id, content, contentType);

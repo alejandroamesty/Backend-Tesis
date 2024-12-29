@@ -34,7 +34,7 @@ async function sendBatchedRequests(
 }
 
 // Test function
-Deno.test('Stress', async () => {
+Deno.test('stress:', async () => {
 	const totalRequests = 1000; // Total number of requests
 	const batchSize = 100; // Number of requests per batch
 	const url = Deno.env.get('BASE_URL') + '/users';

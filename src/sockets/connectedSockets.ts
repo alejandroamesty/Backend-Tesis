@@ -12,6 +12,14 @@ class connectedSockets {
 		delete this.sockets[user_id];
 	}
 
+	removeSocketBySocketId(socket_id: string) {
+		Object.keys(this.sockets).forEach((user_id) => {
+			if (this.sockets[user_id].id === socket_id) {
+				delete this.sockets[user_id];
+			}
+		});
+	}
+
 	getSocket(user_id: string) {
 		return this.sockets[user_id];
 	}

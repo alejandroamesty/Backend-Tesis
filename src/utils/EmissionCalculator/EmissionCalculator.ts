@@ -49,16 +49,6 @@ class EmissionCalculator {
 		this.plastic = plastic;
 	}
 
-	/**
-	 * Calculates the vehicle emission based on various parameters.
-	 *
-	 * @param carNumber - The number of cars.
-	 * @param kilometers - The distance traveled in kilometers per month.
-	 * @param fuelType - The type of fuel used by the vehicle (gasoline, diesel, electric, hybrid).
-	 * @param year - The manufacturing year of the vehicle.
-	 * @param electricConsumptionPercentage - The percentage of electric consumption if the vehicle is a hybrid. In the range of 0-1.
-	 * @returns A promise that resolves to the calculated emission value.
-	 */
 	public calculateVehicleEmission(
 		{
 			carNumber,

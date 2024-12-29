@@ -28,8 +28,6 @@ export default async function authenticateSocket(_Io: Io, socket: Socket) {
 		throw new ForbiddenError('Invalid token');
 	}
 
-	//todo get friends
-
 	connectedSockets.addSocket(payload.id as string, socket);
 
 	socket.emit('authenticated', { msg: 'Authenticated successfully' });
