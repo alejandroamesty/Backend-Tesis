@@ -8,6 +8,8 @@ import categoriesService from './categories.service.ts';
 
 interface ReplyUser {
 	username: string;
+	fname: string;
+	lname: string;
 	image: string | null;
 }
 
@@ -184,13 +186,42 @@ class PostService {
 			.selectFrom('posts')
 			.innerJoin('users', 'users.id', 'posts.user_id')
 			.innerJoin('user_followers', 'user_followers.user_id', 'posts.user_id')
-			.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
-			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
-			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
-			.leftJoin('post_likes', (join) =>
-				join
-					.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
-					.on('post_likes.user_id', '=', sql`${userId}`))
+			.leftJoin(
+				db
+					.selectFrom('post_replies')
+					.select(['post_id', sql<number>`COUNT(id)`.as('reply_count')])
+					.groupBy('post_id')
+					.as('reply_counts'),
+				'reply_counts.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_images')
+					.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT image)`.as('images')])
+					.groupBy('post_id')
+					.as('image_agg'),
+				'image_agg.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_videos')
+					.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT video)`.as('videos')])
+					.groupBy('post_id')
+					.as('video_agg'),
+				'video_agg.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_likes')
+					.where('user_id', '=', userId)
+					.select(['post_id', sql<boolean>`TRUE`.as('user_liked')])
+					.as('user_likes'),
+				'user_likes.post_id',
+				'posts.id',
+			)
 			.select([
 				'posts.id',
 				'posts.caption',
@@ -202,10 +233,10 @@ class PostService {
 				'users.fname',
 				'users.lname',
 				'users.image',
-				sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
-				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
-				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
-				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
+				sql<number>`COALESCE(reply_counts.reply_count, 0)`.as('replies_nu'),
+				sql<string[]>`COALESCE(image_agg.images, ARRAY[]::VARCHAR[])`.as('images'),
+				sql<string[]>`COALESCE(video_agg.videos, ARRAY[]::VARCHAR[])`.as('videos'),
+				sql<boolean>`COALESCE(user_likes.user_liked, FALSE)`.as('user_liked'),
 			])
 			.where('user_followers.user_follower', '=', userId)
 			.where('posts.user_id', '!=', userId)
@@ -214,8 +245,15 @@ class PostService {
 				'=',
 				categoriesService.getCategoryByName('Post')?.id || '',
 			)
+			.groupBy([
+				'posts.id',
+				'users.id',
+				'user_likes.user_liked',
+				'reply_counts.reply_count',
+				'image_agg.images',
+				'video_agg.videos',
+			])
 			.orderBy('posts.post_date', 'desc')
-			.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
 			.limit(limit)
 			.execute();
 
@@ -231,13 +269,42 @@ class PostService {
 			const popularPosts = await trx
 				.selectFrom('posts')
 				.innerJoin('users', 'users.id', 'posts.user_id')
-				.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
-				.leftJoin('post_images', 'posts.id', 'post_images.post_id')
-				.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
-				.leftJoin('post_likes', (join) =>
-					join
-						.on('post_likes.post_id', '=', sql`CAST(posts.id AS UUID)`)
-						.on('post_likes.user_id', '=', sql`${userId}`))
+				.leftJoin(
+					trx
+						.selectFrom('post_replies')
+						.select(['post_id', sql<number>`COUNT(id)`.as('reply_count')])
+						.groupBy('post_id')
+						.as('reply_counts'),
+					'reply_counts.post_id',
+					'posts.id',
+				)
+				.leftJoin(
+					trx
+						.selectFrom('post_images')
+						.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT image)`.as('images')])
+						.groupBy('post_id')
+						.as('image_agg'),
+					'image_agg.post_id',
+					'posts.id',
+				)
+				.leftJoin(
+					trx
+						.selectFrom('post_videos')
+						.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT video)`.as('videos')])
+						.groupBy('post_id')
+						.as('video_agg'),
+					'video_agg.post_id',
+					'posts.id',
+				)
+				.leftJoin(
+					trx
+						.selectFrom('post_likes')
+						.where('user_id', '=', userId)
+						.select(['post_id', sql<boolean>`TRUE`.as('user_liked')])
+						.as('user_likes'),
+					'user_likes.post_id',
+					'posts.id',
+				)
 				.select([
 					'posts.id',
 					'posts.caption',
@@ -249,11 +316,13 @@ class PostService {
 					'users.fname',
 					'users.lname',
 					'users.image',
-					sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
-					sql<number>`posts.likes + COUNT(post_replies.id)`.as('engagement_score'),
-					sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
-					sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
-					sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
+					sql<number>`COALESCE(reply_counts.reply_count, 0)`.as('replies_nu'),
+					sql<number>`posts.likes + COALESCE(reply_counts.reply_count, 0)`.as(
+						'engagement_score',
+					),
+					sql<string[]>`COALESCE(image_agg.images, ARRAY[]::VARCHAR[])`.as('images'),
+					sql<string[]>`COALESCE(video_agg.videos, ARRAY[]::VARCHAR[])`.as('videos'),
+					sql<boolean>`COALESCE(user_likes.user_liked, FALSE)`.as('user_liked'),
 				])
 				.where('posts.user_id', '!=', userId)
 				.where((eb) =>
@@ -272,11 +341,19 @@ class PostService {
 					'=',
 					categoriesService.getCategoryByName('Post')?.id || '',
 				)
-				.groupBy(['posts.id', 'users.id', 'post_likes.user_id'])
+				.groupBy([
+					'posts.id',
+					'users.id',
+					'image_agg.images',
+					'video_agg.videos',
+					'user_likes.user_liked',
+					'reply_counts.reply_count',
+				])
 				.orderBy('engagement_score', 'desc')
 				.orderBy('posts.post_date', 'desc')
 				.limit(limit)
 				.execute();
+
 			const paginatedPosts = popularPosts.slice(offset, offset + limit);
 
 			return paginatedPosts;
@@ -336,6 +413,8 @@ class PostService {
 				'replies.content as replyContent',
 				'replies.created_at as replyCreatedAt',
 				'reply_users.username as replyUserUsername',
+				'reply_users.fname as replyUserFname',
+				'reply_users.lname as replyUserLname',
 				'reply_users.image as replyUserImage',
 
 				// Nested replies
@@ -343,6 +422,8 @@ class PostService {
 				'nested_replies.content as nestedReplyContent',
 				'nested_replies.created_at as nestedReplyCreatedAt',
 				'nested_users.username as nestedReplyUserUsername',
+				'nested_users.fname as nestedReplyUserFname',
+				'nested_users.lname as nestedReplyUserLname',
 				'nested_users.image as nestedReplyUserImage',
 
 				sql<boolean>`(post_likes.user_id IS NOT NULL)`.as('user_liked'),
@@ -359,8 +440,12 @@ class PostService {
 				'post_images.image',
 				'post_videos.video',
 				'reply_users.username',
+				'reply_users.fname',
+				'reply_users.lname',
 				'reply_users.image',
 				'nested_users.username',
+				'nested_users.fname',
+				'nested_users.lname',
 				'nested_users.image',
 			])
 			.execute();
@@ -387,10 +472,12 @@ class PostService {
 		// Aggregate images and videos
 		const images = rows
 			.map((row) => row.image)
-			.filter((image): image is string => image !== null);
+			.filter((image): image is string => image !== null)
+			.filter((image, index, self) => self.indexOf(image) === index);
 		const videos = rows
 			.map((row) => row.video)
-			.filter((video): video is string => video !== null);
+			.filter((video): video is string => video !== null)
+			.filter((video, index, self) => self.indexOf(video) === index);
 
 		const repliesMap = new Map<string, ReplyType>();
 		const nestedReplyIds = new Set<string>();
@@ -410,6 +497,8 @@ class PostService {
 					id: row.replyId,
 					user: {
 						username: row.replyUserUsername || '',
+						fname: row.replyUserFname || '',
+						lname: row.replyUserLname || '',
 						image: row.replyUserImage || null,
 					},
 					content: row.replyContent || '',
@@ -436,6 +525,8 @@ class PostService {
 						id: row.nestedReplyId,
 						user: {
 							username: row.nestedReplyUserUsername || '',
+							fname: row.nestedReplyUserFname || '',
+							lname: row.nestedReplyUserLname || '',
 							image: row.nestedReplyUserImage || null,
 						},
 						content: row.nestedReplyContent || '',
