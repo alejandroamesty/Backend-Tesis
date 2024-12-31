@@ -20,9 +20,13 @@ class UserController {
 
 	async getById(req: Request, res: Response) {
 		try {
+			const user_id = req.user;
+			if (!user_id) {
+				throw new UnauthorizedError('No estas autorizado para realizar esta accion');
+			}
 			const id = req.params.id;
 			verifyTypes({ value: id, type: 'uuid' });
-			const user = await userService.getUserById(id);
+			const user = await userService.getUserById(id, user_id);
 			res.json({
 				msg: 'Data encontrada con exito',
 				data: user,
@@ -48,9 +52,13 @@ class UserController {
 
 	async getByUsername(req: Request, res: Response) {
 		try {
+			const id = req.user;
+			if (!id) {
+				throw new UnauthorizedError('No estas autorizado para realizar esta accion');
+			}
 			const username = req.params.username;
 			verifyTypes({ value: username, type: 'string' });
-			const user = await userService.getUserByUsername(username);
+			const user = await userService.getUserByUsername(username, id);
 			res.json({
 				msg: 'Data encontrada con exito',
 				data: user,

@@ -7,9 +7,9 @@ const userRouter = Router();
 
 userRouter
 	.get('/', userController.getAll)
-	.get('/:id', userController.getById)
+	.get('/:id', userAuth, userController.getById)
 	.get('/email/:email', userController.getByEmail)
-	.get('/username/:username', userController.getByUsername)
+	.get('/username/:username', userAuth, userController.getByUsername)
 	.put('/', userAuth, userController.update)
 	.delete('/', userAuth, userController.delete);
 

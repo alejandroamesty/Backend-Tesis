@@ -25,14 +25,73 @@ class UserService {
 			.execute();
 	}
 
-	async getUserById(id: string) {
+	async getUserById(id: string, requesterId: string) {
 		const user = await db
 			.selectFrom('users')
-			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
-			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
-			.leftJoin('user_followers as followers', 'users.id', 'followers.user_follower')
+			.leftJoin(
+				db
+					.selectFrom('user_emissions')
+					.select([
+						'user_id',
+						'id as emissions_id',
+						'impact',
+						'direct_emissions',
+						'indirect_emissions',
+						'other_emissions',
+						'created_at',
+						'updated_at',
+					])
+					.as('emissions'),
+				'emissions.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_id',
+						sql<number>`COUNT(user_follower)`.as('followers_nu'),
+					])
+					.groupBy('user_id')
+					.as('follower_counts'),
+				'follower_counts.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_follower',
+						sql<number>`COUNT(user_id)`.as('following_nu'),
+					])
+					.groupBy('user_follower')
+					.as('following_counts'),
+				'following_counts.user_follower',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('activities')
+					.where('completed', '=', true) // Filter only completed activities
+					.select([
+						'user_id',
+						sql<number>`COUNT(*)`.as('activities_nu'),
+					])
+					.groupBy('user_id')
+					.as('activity_counts'),
+				'activity_counts.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.where('user_follower', '=', requesterId) // Check if the requester is following
+					.select(['user_id', sql<boolean>`TRUE`.as('is_following')])
+					.as('user_follows'),
+				'user_follows.user_id',
+				'users.id',
+			)
 			.where('users.id', '=', id)
-			.where('deleted_at', 'is', null)
 			.select([
 				'users.id',
 				'users.fname',
@@ -42,17 +101,18 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
-				'user_emissions.id as emission_id',
-				'user_emissions.impact',
-				'user_emissions.direct_emissions',
-				'user_emissions.indirect_emissions',
-				'user_emissions.other_emissions',
-				'user_emissions.created_at',
-				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_id').as('followers_nu'),
-				sql<number>`COUNT(followers.user_id)`.as('following_nu'),
+				'emissions.emissions_id',
+				'emissions.impact',
+				'emissions.direct_emissions',
+				'emissions.indirect_emissions',
+				'emissions.other_emissions',
+				'emissions.created_at',
+				'emissions.updated_at',
+				sql<number>`COALESCE(follower_counts.followers_nu, 0)`.as('followers_nu'),
+				sql<number>`COALESCE(following_counts.following_nu, 0)`.as('following_nu'),
+				sql<number>`COALESCE(activity_counts.activities_nu, 0)`.as('activities_nu'),
+				sql<boolean>`COALESCE(user_follows.is_following, FALSE)`.as('is_following'),
 			])
-			.groupBy(['users.id', 'user_emissions.id'])
 			.executeTakeFirst();
 
 		if (!user) {
@@ -62,14 +122,75 @@ class UserService {
 		return { user, posts };
 	}
 
-	async getUserByUsername(username: string) {
+	async getUserByUsername(username: string, requesterId: string) {
 		const user = await db
 			.selectFrom('users')
-			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
-			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.leftJoin(
+				db
+					.selectFrom('user_emissions')
+					.select([
+						'user_id',
+						'id as emissions_id',
+						'impact',
+						'direct_emissions',
+						'indirect_emissions',
+						'other_emissions',
+						'created_at',
+						'updated_at',
+					])
+					.as('emissions'),
+				'emissions.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_id',
+						sql<number>`COUNT(user_follower)`.as('followers_nu'),
+					])
+					.groupBy('user_id')
+					.as('follower_counts'),
+				'follower_counts.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_follower',
+						sql<number>`COUNT(user_id)`.as('following_nu'),
+					])
+					.groupBy('user_follower')
+					.as('following_counts'),
+				'following_counts.user_follower',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('activities')
+					.where('completed', '=', true) // Filter only completed activities
+					.select([
+						'user_id',
+						sql<number>`COUNT(*)`.as('activities_nu'),
+					])
+					.groupBy('user_id')
+					.as('activity_counts'),
+				'activity_counts.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.where('user_follower', '=', requesterId) // Check if the requester is following
+					.select(['user_id', sql<boolean>`TRUE`.as('is_following')])
+					.as('user_follows'),
+				'user_follows.user_id',
+				'users.id',
+			)
 			.where('users.username', '=', username)
 			.select([
-				'users.id as id',
+				'users.id',
 				'users.fname',
 				'users.lname',
 				'users.username',
@@ -77,17 +198,18 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
-				'user_emissions.id as emissions_id',
-				'user_emissions.impact',
-				'user_emissions.direct_emissions',
-				'user_emissions.indirect_emissions',
-				'user_emissions.other_emissions',
-				'user_emissions.created_at',
-				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_id').as('followers_nu'),
-				sql<number>`COUNT(user_followers.user_follower)`.as('following_nu'),
+				'emissions.emissions_id',
+				'emissions.impact',
+				'emissions.direct_emissions',
+				'emissions.indirect_emissions',
+				'emissions.other_emissions',
+				'emissions.created_at',
+				'emissions.updated_at',
+				sql<number>`COALESCE(follower_counts.followers_nu, 0)`.as('followers_nu'),
+				sql<number>`COALESCE(following_counts.following_nu, 0)`.as('following_nu'),
+				sql<number>`COALESCE(activity_counts.activities_nu, 0)`.as('activities_nu'),
+				sql<boolean>`COALESCE(user_follows.is_following, FALSE)`.as('is_following'),
 			])
-			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 
 		if (!user) {
@@ -100,8 +222,59 @@ class UserService {
 	async getUserByEmail(email: string) {
 		const user = await db
 			.selectFrom('users')
-			.leftJoin('user_emissions', 'users.id', 'user_emissions.user_id')
-			.leftJoin('user_followers', 'users.id', 'user_followers.user_id')
+			.leftJoin(
+				db
+					.selectFrom('user_emissions')
+					.select([
+						'user_id',
+						'id as emissions_id',
+						'impact',
+						'direct_emissions',
+						'indirect_emissions',
+						'other_emissions',
+						'created_at',
+						'updated_at',
+					])
+					.as('emissions'),
+				'emissions.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_id',
+						sql<number>`COUNT(user_follower)`.as('followers_nu'),
+					])
+					.groupBy('user_id')
+					.as('follower_counts'),
+				'follower_counts.user_id',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('user_followers')
+					.select([
+						'user_follower',
+						sql<number>`COUNT(user_id)`.as('following_nu'),
+					])
+					.groupBy('user_follower')
+					.as('following_counts'),
+				'following_counts.user_follower',
+				'users.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('activities')
+					.select([
+						'user_id',
+						sql<number>`COUNT(completed)`.as('activities_nu'),
+					])
+					.groupBy('user_id')
+					.as('activity_counts'),
+				'activity_counts.user_id',
+				'users.id',
+			)
 			.where('users.email', '=', email)
 			.select([
 				'users.id',
@@ -112,17 +285,17 @@ class UserService {
 				'users.address',
 				'users.image',
 				'users.birth_date',
-				'user_emissions.id as emissions_id',
-				'user_emissions.impact',
-				'user_emissions.direct_emissions',
-				'user_emissions.indirect_emissions',
-				'user_emissions.other_emissions',
-				'user_emissions.created_at',
-				'user_emissions.updated_at',
-				db.fn.count('user_followers.user_id').as('followers_nu'),
-				sql<number>`COUNT(user_followers.user_follower)`.as('following_nu'),
+				'emissions.emissions_id',
+				'emissions.impact',
+				'emissions.direct_emissions',
+				'emissions.indirect_emissions',
+				'emissions.other_emissions',
+				'emissions.created_at',
+				'emissions.updated_at',
+				sql<number>`COALESCE(follower_counts.followers_nu, 0)`.as('followers_nu'),
+				sql<number>`COALESCE(following_counts.following_nu, 0)`.as('following_nu'),
+				sql<number>`COALESCE(activity_counts.activities_nu, 0)`.as('activities_nu'),
 			])
-			.groupBy(['users.id', 'user_emissions.id']) // Ensure grouping for aggregate functions
 			.executeTakeFirst();
 
 		if (user) {
@@ -202,9 +375,42 @@ class UserService {
 		const posts = await db
 			.selectFrom('posts')
 			.leftJoin('users', 'posts.user_id', 'users.id')
-			.leftJoin('post_replies', 'post_replies.post_id', 'posts.id')
-			.leftJoin('post_images', 'posts.id', 'post_images.post_id')
-			.leftJoin('post_videos', 'posts.id', 'post_videos.post_id')
+			.leftJoin(
+				db
+					.selectFrom('post_replies')
+					.select(['post_id', sql<number>`COUNT(id)`.as('reply_count')])
+					.groupBy('post_id')
+					.as('reply_counts'),
+				'reply_counts.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_images')
+					.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT image)`.as('images')])
+					.groupBy('post_id')
+					.as('image_agg'),
+				'image_agg.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_videos')
+					.select(['post_id', sql<string[]>`ARRAY_AGG(DISTINCT video)`.as('videos')])
+					.groupBy('post_id')
+					.as('video_agg'),
+				'video_agg.post_id',
+				'posts.id',
+			)
+			.leftJoin(
+				db
+					.selectFrom('post_likes')
+					.where('user_id', '=', userId)
+					.select(['post_id', sql<boolean>`TRUE`.as('user_liked')])
+					.as('user_likes'),
+				'user_likes.post_id',
+				'posts.id',
+			)
 			.where('posts.user_id', '=', userId)
 			.select([
 				'posts.id as postId',
@@ -214,11 +420,19 @@ class UserService {
 				'posts.likes',
 				'users.id as userId',
 				'users.username',
-				sql<number>`COUNT(post_replies.id)`.as('replies_nu'),
-				sql<string[]>`ARRAY_AGG(DISTINCT post_images.image)`.as('images'),
-				sql<string[]>`ARRAY_AGG(DISTINCT post_videos.video)`.as('videos'),
+				sql<number>`COALESCE(reply_counts.reply_count, 0)`.as('replies_nu'),
+				sql<string[]>`COALESCE(image_agg.images, ARRAY[]::VARCHAR[])`.as('images'),
+				sql<string[]>`COALESCE(video_agg.videos, ARRAY[]::VARCHAR[])`.as('videos'),
+				sql<boolean>`COALESCE(user_likes.user_liked, FALSE)`.as('user_liked'),
 			])
-			.groupBy(['posts.id', 'users.id']) // Ensure grouping for aggregate functions
+			.groupBy([
+				'posts.id',
+				'users.id',
+				'reply_counts.reply_count',
+				'image_agg.images',
+				'video_agg.videos',
+				'user_likes.user_liked',
+			]) // Include aggregated subqueries in GROUP BY
 			.orderBy('posts.post_date', 'desc') // Sort by most recent
 			.limit(limit)
 			.offset(offset)
@@ -233,6 +447,8 @@ class UserService {
 			likes: post.likes,
 			images: post.images || [], // Placeholder for count
 			videos: post.videos || [], // Placeholder for count
+			user_liked: post.user_liked,
+			replies_nu: post.replies_nu,
 		}));
 	}
 }
