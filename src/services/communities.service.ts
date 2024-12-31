@@ -50,10 +50,57 @@ class CommunitiesService {
 
 	async getById(id: string, user_id: string) {
 		return await db.transaction().execute(async (trx: Transaction<Database>) => {
-			const [community] = await trx
+			const community = await trx
 				.selectFrom('communities')
-				.leftJoin('chat_members as cm', 'communities.chat_id', 'cm.chat_id')
-				.leftJoin('users as u', 'cm.user_id', 'u.id')
+				.leftJoin(
+					db
+						.selectFrom('chat_members as cm')
+						.leftJoin('users as u', 'cm.user_id', 'u.id')
+						.select([
+							'cm.chat_id',
+							sql`
+							json_agg(
+								json_build_object(
+									'user_id', u.id,
+									'username', u.username,
+									'image', u.image,
+									'fname', u.fname,
+									'lname', u.lname
+								)
+							) FILTER (WHERE u.id IS NOT NULL)
+						`.as('members'),
+						])
+						.groupBy('cm.chat_id')
+						.as('members_agg'),
+					'members_agg.chat_id',
+					'communities.chat_id',
+				)
+				.leftJoin(
+					db
+						.selectFrom('events as e')
+						.leftJoin('coordinates as c', 'e.event_location', 'c.id')
+						.select([
+							'e.community_id',
+							sql`
+							json_agg(
+								json_build_object(
+									'id', e.id,
+									'name', e.name,
+									'description', e.description,
+									'location', json_build_object(
+										'x', c.x,
+										'y', c.y
+									),
+									'date', e.event_date
+								)
+							) FILTER (WHERE e.id IS NOT NULL)
+						`.as('events'),
+						])
+						.groupBy('e.community_id')
+						.as('events_agg'),
+					'events_agg.community_id',
+					'communities.id',
+				)
 				.where('communities.id', '=', id)
 				.select([
 					'communities.id',
@@ -62,20 +109,10 @@ class CommunitiesService {
 					'communities.image',
 					'communities.chat_id',
 					'communities.private_community',
-					sql`
-						json_agg(
-							json_build_object(
-								'user_id', u.id,
-								'username', u.username,
-								'image', u.image,
-								'fname', u.fname,
-								'lname', u.lname
-							)
-						) FILTER (WHERE u.id IS NOT NULL)
-					`.as('members'),
+					sql`COALESCE(members_agg.members, '[]'::JSON)`.as('members'),
+					sql`COALESCE(events_agg.events, '[]'::JSON)`.as('events'),
 				])
-				.groupBy('communities.id')
-				.execute();
+				.executeTakeFirst();
 
 			if (!community) {
 				throw new NotFoundError('Comunidad no encontrada');
