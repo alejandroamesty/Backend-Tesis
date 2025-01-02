@@ -18,9 +18,6 @@ class CategoriesService {
 	}
 
 	getCategoryByName(name: string) {
-		console.log(this.categories);
-		console.log(name);
-		console.log(this.categories.find((category) => category.name === name));
 		return this.categories.find((category) => category.name === name);
 	}
 }
