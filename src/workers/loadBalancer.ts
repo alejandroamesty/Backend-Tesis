@@ -3,7 +3,7 @@ import { serve } from 'https://deno.land/std@0.150.0/http/server.ts';
 export default function startLoadBalancer(
 	port: number,
 	workersPort: number,
-	workerNumbers: number
+	workerNumbers: number,
 ) {
 	const workers: number[] = [];
 	let currentWorker = 0;
@@ -17,6 +17,7 @@ export default function startLoadBalancer(
 			currentWorker = (currentWorker + 1) % workers.length;
 
 			const url = new URL(req.url);
+			url.hostname = 'localhost';
 			url.port = targetPort.toString();
 
 			try {
@@ -43,6 +44,6 @@ export default function startLoadBalancer(
 			onListen: () => {
 				console.log(`Balancer running on port ${port}`);
 			},
-		}
+		},
 	);
 }
