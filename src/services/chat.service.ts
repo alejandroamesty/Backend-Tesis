@@ -112,6 +112,7 @@ class ChatService {
 				.select([
 					'chat_members.chat_id as chatId',
 					'users.id as userId',
+					'users.username',
 					'users.fname',
 					'users.lname',
 					'users.image',
@@ -124,6 +125,7 @@ class ChatService {
 					if (!acc[member.chatId]) acc[member.chatId] = [];
 					acc[member.chatId].push({
 						userId: member.userId || '',
+						username: member.username || '',
 						fname: member.fname || '',
 						lname: member.lname || '',
 						image: member.image,
@@ -132,7 +134,15 @@ class ChatService {
 				},
 				{} as Record<
 					string,
-					Array<{ userId: string; fname: string; lname: string; image: string | null }>
+					Array<
+						{
+							userId: string;
+							username: string;
+							fname: string;
+							lname: string;
+							image: string | null;
+						}
+					>
 				>,
 			);
 
