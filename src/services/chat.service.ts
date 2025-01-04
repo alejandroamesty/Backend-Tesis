@@ -84,7 +84,7 @@ class ChatService {
 
 	async getChats(userId: string) {
 		return await db.transaction().execute(async (trx) => {
-			// step 1: fetch chatss
+			// Step 1: Fetch chats
 			const chats = await trx
 				.selectFrom('chat_members')
 				.where('chat_members.user_id', '=', userId)
@@ -102,9 +102,10 @@ class ChatService {
 				])
 				.execute();
 
-			// step 2: fetch members for all chats
+			// Step 2: Fetch members for all chats
 			const chatIds = chats.map((chat) => chat.chatId);
 			if (chatIds.length === 0) return []; // No chats found
+
 			const members = await trx
 				.selectFrom('chat_members')
 				.where('chat_members.chat_id', 'in', chatIds)
@@ -119,7 +120,29 @@ class ChatService {
 				])
 				.execute();
 
-			// step 3: group members by chatId
+			const communities = await trx
+				.selectFrom('communities')
+				.where('communities.chat_id', 'in', chatIds)
+				.select(['communities.chat_id', 'communities.name', 'communities.image'])
+				.execute();
+
+			// Step 3: Fetch last message for each chat
+			const lastMessages = await trx
+				.selectFrom('chat_messages')
+				.where('chat_id', 'in', chatIds)
+				.select([
+					'chat_id as chatId',
+					'id as messageId',
+					'content',
+					'content_type',
+					'created_at',
+				])
+				.distinctOn(['chat_id']) // Ensure distinct on chat_id
+				.orderBy('chat_id') // Must match the DISTINCT ON column
+				.orderBy('created_at', 'desc') // Secondary order to get the latest message
+				.execute();
+
+			// Step 4: Group members by chatId
 			const membersByChatId = members.reduce(
 				(acc, member) => {
 					if (!acc[member.chatId]) acc[member.chatId] = [];
@@ -134,23 +157,46 @@ class ChatService {
 				},
 				{} as Record<
 					string,
-					Array<
-						{
-							userId: string;
-							username: string;
-							fname: string;
-							lname: string;
-							image: string | null;
-						}
-					>
+					Array<{
+						userId: string;
+						username: string;
+						fname: string;
+						lname: string;
+						image: string | null;
+					}>
 				>,
 			);
 
-			// step 4: merge chats with their members
+			// Step 5: Map last messages by chatId
+			const lastMessagesByChatId = lastMessages.reduce(
+				(acc, message) => {
+					acc[message.chatId] = {
+						messageId: message.messageId,
+						content: message.content,
+						contentType: message.content_type,
+						createdAt: message.created_at,
+					};
+					return acc;
+				},
+				{} as Record<
+					string,
+					{
+						messageId: string;
+						content: string;
+						contentType: number;
+						createdAt: Date;
+					}
+				>,
+			);
+
+			// Step 6: Merge chats with their members and last messages
 			return chats.map((chat) => ({
 				...chat,
+				name: communities.find((c) => c.chat_id === chat.chatId)?.name || null,
+				image: communities.find((c) => c.chat_id === chat.chatId)?.image || chat.image,
 				members_nu: membersByChatId[chat.chatId || '']?.length || 0,
 				members: membersByChatId[chat.chatId || ''] || [],
+				lastMessage: lastMessagesByChatId[chat.chatId || -1] || null,
 			}));
 		});
 	}
