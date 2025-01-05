@@ -19,7 +19,7 @@ class CommunitiesService {
 			.where(
 				'communities.chat_id',
 				'in',
-				db.selectFrom('chat_members').select('chat_id').where('user_id', '=', user_id)
+				db.selectFrom('chat_members').select('chat_id').where('user_id', '=', user_id),
 			)
 			.select([
 				'communities.id',
@@ -70,7 +70,7 @@ class CommunitiesService {
 						.groupBy('cm.chat_id')
 						.as('members_agg'),
 					'members_agg.chat_id',
-					'communities.chat_id'
+					'communities.chat_id',
 				)
 				.leftJoin(
 					db
@@ -96,7 +96,7 @@ class CommunitiesService {
 						.groupBy('e.community_id')
 						.as('events_agg'),
 					'events_agg.community_id',
-					'communities.id'
+					'communities.id',
 				)
 				.where('communities.id', '=', id)
 				.select([
@@ -158,7 +158,7 @@ class CommunitiesService {
 
 			const uniqueMembers = [
 				...new Set(
-					data.members.filter((member) => member !== data.user_id) // Exclude user_id and remove duplicates
+					data.members.filter((member) => member !== data.user_id), // Exclude user_id and remove duplicates
 				),
 			];
 
@@ -238,7 +238,9 @@ class CommunitiesService {
 				.execute();
 
 			if (!community) {
-				throw new ForbiddenError('No tienes permisos para añadir miembros a esta comunidad');
+				throw new ForbiddenError(
+					'No tienes permisos para añadir miembros a esta comunidad',
+				);
 			}
 
 			// Add the member to the community
@@ -260,7 +262,9 @@ class CommunitiesService {
 				.execute();
 
 			if (!community) {
-				throw new ForbiddenError('No tienes permisos para eliminar miembros de esta comunidad');
+				throw new ForbiddenError(
+					'No tienes permisos para eliminar miembros de esta comunidad',
+				);
 			}
 
 			// Remove the member from the community
@@ -307,13 +311,24 @@ class CommunitiesService {
 
 	async leaveCommunity(community_id: string, user_id: string) {
 		return await db.transaction().execute(async (trx) => {
+			// Fetch the community to get its chat_id
+			const community = await trx
+				.selectFrom('communities')
+				.where('id', '=', community_id)
+				.select(['id', 'chat_id'])
+				.executeTakeFirst();
+
+			if (!community) {
+				throw new NotFoundError('Comunidad no encontrada');
+			}
+
 			// Check if the user is in the community
-			const [isMember] = await trx
+			const isMember = await trx
 				.selectFrom('chat_members')
-				.where('chat_id', '=', community_id)
+				.where('chat_id', '=', community.chat_id) // Compare with the chat_id of the community
 				.where('user_id', '=', user_id)
-				.selectAll()
-				.execute();
+				.select('user_id')
+				.executeTakeFirst();
 
 			if (!isMember) {
 				throw new ForbiddenError('No eres miembro de esta comunidad');
@@ -322,7 +337,7 @@ class CommunitiesService {
 			// Remove the user from the community
 			await trx
 				.deleteFrom('chat_members')
-				.where('chat_id', '=', community_id)
+				.where('chat_id', '=', community.chat_id) // Use the correct chat_id
 				.where('user_id', '=', user_id)
 				.execute();
 		});
