@@ -3,14 +3,12 @@ import { ForbiddenError, NotFoundError } from '../utils/errors/httpErrors.ts';
 import { RequireAtLeastOne } from '../types/types.ts';
 import { sql, Transaction } from 'kysely';
 import { Database } from '../models/database.model.ts';
-type UpdateData = RequireAtLeastOne<
-	{
-		name?: string;
-		description?: string | null;
-		image?: string | null;
-		private_community?: boolean;
-	}
->;
+type UpdateData = RequireAtLeastOne<{
+	name?: string;
+	description?: string | null;
+	image?: string | null;
+	private_community?: boolean;
+}>;
 
 class CommunitiesService {
 	async getAll(user_id: string) {
@@ -21,9 +19,7 @@ class CommunitiesService {
 			.where(
 				'communities.chat_id',
 				'in',
-				db.selectFrom('chat_members')
-					.select('chat_id')
-					.where('user_id', '=', user_id),
+				db.selectFrom('chat_members').select('chat_id').where('user_id', '=', user_id)
 			)
 			.select([
 				'communities.id',
@@ -32,6 +28,7 @@ class CommunitiesService {
 				'communities.image',
 				'communities.chat_id',
 				'communities.private_community',
+				'communities.owner_id',
 				sql`
 					json_agg(
 						json_build_object(
@@ -73,7 +70,7 @@ class CommunitiesService {
 						.groupBy('cm.chat_id')
 						.as('members_agg'),
 					'members_agg.chat_id',
-					'communities.chat_id',
+					'communities.chat_id'
 				)
 				.leftJoin(
 					db
@@ -99,7 +96,7 @@ class CommunitiesService {
 						.groupBy('e.community_id')
 						.as('events_agg'),
 					'events_agg.community_id',
-					'communities.id',
+					'communities.id'
 				)
 				.where('communities.id', '=', id)
 				.select([
@@ -109,6 +106,7 @@ class CommunitiesService {
 					'communities.image',
 					'communities.chat_id',
 					'communities.private_community',
+					'communities.owner_id',
 					sql`COALESCE(members_agg.members, '[]'::JSON)`.as('members'),
 					sql`COALESCE(events_agg.events, '[]'::JSON)`.as('events'),
 				])
@@ -160,7 +158,7 @@ class CommunitiesService {
 
 			const uniqueMembers = [
 				...new Set(
-					data.members.filter((member) => member !== data.user_id), // Exclude user_id and remove duplicates
+					data.members.filter((member) => member !== data.user_id) // Exclude user_id and remove duplicates
 				),
 			];
 
@@ -225,11 +223,7 @@ class CommunitiesService {
 			}
 
 			// Update the community
-			await trx
-				.updateTable('communities')
-				.set(data)
-				.where('id', '=', id)
-				.execute();
+			await trx.updateTable('communities').set(data).where('id', '=', id).execute();
 		});
 	}
 
@@ -244,9 +238,7 @@ class CommunitiesService {
 				.execute();
 
 			if (!community) {
-				throw new ForbiddenError(
-					'No tienes permisos para añadir miembros a esta comunidad',
-				);
+				throw new ForbiddenError('No tienes permisos para añadir miembros a esta comunidad');
 			}
 
 			// Add the member to the community
@@ -268,9 +260,7 @@ class CommunitiesService {
 				.execute();
 
 			if (!community) {
-				throw new ForbiddenError(
-					'No tienes permisos para eliminar miembros de esta comunidad',
-				);
+				throw new ForbiddenError('No tienes permisos para eliminar miembros de esta comunidad');
 			}
 
 			// Remove the member from the community
