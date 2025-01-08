@@ -411,6 +411,7 @@ class UserService {
 				'user_likes.post_id',
 				'posts.id',
 			)
+			.leftJoin('coordinates', 'posts.coordinates_id', 'coordinates.id')
 			.where('posts.user_id', '=', userId)
 			.select([
 				'posts.id as postId',
@@ -420,6 +421,8 @@ class UserService {
 				'posts.likes',
 				'users.id as userId',
 				'users.username',
+				'coordinates.x as coord_x',
+				'coordinates.y as coord_y',
 				sql<number>`COALESCE(reply_counts.reply_count, 0)`.as('replies_nu'),
 				sql<string[]>`COALESCE(image_agg.images, ARRAY[]::VARCHAR[])`.as('images'),
 				sql<string[]>`COALESCE(video_agg.videos, ARRAY[]::VARCHAR[])`.as('videos'),
@@ -428,6 +431,8 @@ class UserService {
 			.groupBy([
 				'posts.id',
 				'users.id',
+				'coordinates.x',
+				'coordinates.y',
 				'reply_counts.reply_count',
 				'image_agg.images',
 				'video_agg.videos',
@@ -445,8 +450,10 @@ class UserService {
 			caption: post.caption,
 			post_date: post.post_date,
 			likes: post.likes,
-			images: post.images || [], // Placeholder for count
-			videos: post.videos || [], // Placeholder for count
+			x: post.coord_x,
+			y: post.coord_y,
+			images: post.images || [],
+			videos: post.videos || [],
 			user_liked: post.user_liked,
 			replies_nu: post.replies_nu,
 		}));

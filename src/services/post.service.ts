@@ -396,6 +396,7 @@ class PostService {
 				'users.username as userUsername',
 				'users.fname as userFname',
 				'users.lname as userLname',
+				'users.image as userImage',
 
 				// Coordinates
 				'coordinates.x',
@@ -464,6 +465,7 @@ class PostService {
 			userUsername,
 			userFname,
 			userLname,
+			userImage,
 			x,
 			y,
 			categoryName,
@@ -563,6 +565,7 @@ class PostService {
 				username: userUsername,
 				fname: userFname,
 				lname: userLname,
+				image: userImage,
 			},
 		};
 	}

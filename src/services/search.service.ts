@@ -25,9 +25,7 @@ class SearchService {
 				.where((eb) =>
 					eb.or([
 						// Properly parameterized concatenation
-						sql<boolean>`concat(users.fname, ' ', users.lname) ILIKE ${
-							'%' + parameter + '%'
-						}`,
+						sql<boolean>`concat(users.fname, ' ', users.lname) ILIKE ${'%' + parameter + '%'}`,
 						eb('username', 'ilike', `%${parameter}%`), // Case-insensitive search
 					])
 				)
@@ -44,6 +42,7 @@ class SearchService {
 					'name',
 					'image',
 					'communities.description',
+					'communities.private_community',
 					sql<number>`COUNT(chat_members.user_id)`.as('members_count'),
 				])
 				.innerJoin('chats', 'chats.id', 'communities.chat_id')
