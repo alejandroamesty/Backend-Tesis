@@ -31,10 +31,13 @@ jobs:
       - name: Install step
         run: "deno install"
 
+      - name: Build step
+        run: "deno run migrate"
+
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "alejandrovi-backend-tes-44"
+          project: "alejandrovi-backend-tes-11"
           entrypoint: "server.ts"
           root: ""
           
